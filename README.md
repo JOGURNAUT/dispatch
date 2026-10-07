@@ -30,11 +30,13 @@ source references, pinned to the commit it was generated from.
 ## Run it
 
 Nothing to install. The transformation logic is standard-library Python, so the
-whole pipeline runs on a laptop in about two seconds.
+whole pipeline runs on a laptop in about seven seconds.
 
 ```bash
-make demo
+make demo        # 5,000 trips, ~7s
 ```
+
+At 20,000 trips (~33s) the same run prints:
 
 ```
 125352 events for 20000 trips -> data/raw/events.jsonl

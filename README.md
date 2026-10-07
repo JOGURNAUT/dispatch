@@ -45,7 +45,7 @@ gold     trips 20000  {'complete': 19905, 'broken': 95}
 ```
 
 ```bash
-make test     # 43 tests, no cluster needed
+make test     # 70 tests, no cluster needed
 make up       # Kafka, Spark, Postgres and Airflow in Docker
 ```
 
@@ -130,6 +130,28 @@ This rule caught its own violation during development: the freshness gate was
 reading the wall clock, which made every backfill fail for the only reason a
 backfill exists — that its data is older than today.
 
+### A producer adds a field nobody told you about
+
+The quietest data loss there is. A producer team ships a new field on Tuesday,
+the consumer ignores the unknown key, every run is green, and the field is
+absent for **every row** from the day it appeared. Nobody finds out until someone
+asks for a report on it, and the only remedy then is to start collecting and wait.
+
+Unknown fields are kept in `extra` rather than dropped, so promoting one to a
+real column later is a backfill over data that exists. A versioned registry says
+what each schema declares, so a v1.0.0 row reads under v1.1.0 through declared
+defaults and a v1.1.0 row reads under v1.0.0 with its new fields parked. Both
+versions sit in one topic, because a producer fleet does not upgrade atomically.
+
+`check_compatibility` is meant to run in the **producer's** CI, before the change
+ships — adding an optional field is `FULL`, making an existing field required or
+changing its type is `BREAKING` and refused. Finding out at ingestion time means
+finding out from a partition that has already landed.
+
+In the 20,000-trip run: **18,107** v1.1.0 records keep `vehicle_type` and
+`battery_pct`, and **2,403** keep `weather_code`, which no schema version
+declares at all.
+
 ### Timestamp drift between producers
 
 The same logical field arrives as `2026-07-24 03:16:02` from one export path and
@@ -156,6 +178,14 @@ only failures cannot distinguish a check that passed from one that never ran.
 
 They run **before** the load, not after. A validate task placed downstream of a
 load means the bad rows are already being read by the time anything objects.
+
+A failure alerts with the verdict text — `fct_trip dropped 1,647 of 32,380 left
+rows - the join is behaving as INNER` is the alert, not "the DAG failed" — and
+states that nothing was loaded, because the first question on being paged is
+whether the warehouse is wrong right now. Nothing is sent on a green run: a
+channel carrying every success gets muted, and then the failures are muted too.
+`send()` never raises, since an alerter that can fail a task has made the
+pipeline less reliable than it was with none.
 
 Two choices that keep them useful rather than noisy:
 
@@ -195,15 +225,17 @@ wrong in the tail. Those need different fixes.
 ```
 dispatch/            pure-Python transformation logic — no engine imports
   contracts.py         schema boundary, timestamp normalisation
+  schema_registry.py   versioned schemas, compatibility checking, extras
   dedupe.py            idempotent replay, natural keys, correcting re-publishes
   sessionize.py        events → trip facts, completeness, late arrival
   quality.py           the nine gates
+  notify.py            alerting on a failed gate
 generator/produce.py   synthetic telemetry with injected defects, Kafka or JSONL
 streaming/ingest.py    Spark Structured Streaming: Kafka → bronze Parquet
 transforms/            batch runner and the warehouse loader
 dags/dispatch_dag.py   Airflow: one task per layer, gated before each load
 dbt/                   staging + two marts, 3 singular tests, 11 schema tests
-tests/                 43 tests
+tests/                 70 tests
 ```
 
 ## The generator is adversarial on purpose
@@ -211,9 +243,10 @@ tests/                 43 tests
 A producer that emits clean data tests nothing. Every defect the gates exist for
 is injected at a tunable rate: redeliveries, correcting re-publishes, delayed
 messages, the second serialisation, null join keys, lifecycle violations and
-mid-flight cancellations. Defaults produce roughly 4.8% redeliveries and 95
-lifecycle violations per 20,000 trips, and the run is only interesting if the
-pipeline catches them.
+mid-flight cancellations. It also emits a mix of schema versions, including
+a field declared by no version at all. Defaults produce roughly 4.7%
+redeliveries, 89 lifecycle violations and 2,403 undeclared fields per 20,000
+trips, and the run is only interesting if the pipeline catches them.
 
 ```bash
 python -m generator.produce --trips 20000 --dup-rate 0.1 --broken-rate 0.05

@@ -27,6 +27,9 @@ generic checklist.
 **[Interactive architecture diagram →](docs/dispatch-architecture.html)** — every box carries its
 source references, pinned to the commit it was generated from.
 
+**[Results page →](docs/results.html)** — what the pipeline found, generated from
+the warehouse at build time rather than typed in.
+
 ## Run it
 
 Nothing to install. The transformation logic is standard-library Python, so the
@@ -34,6 +37,13 @@ whole pipeline runs on a laptop in about seven seconds.
 
 ```bash
 make demo        # 5,000 trips, ~7s
+```
+
+On Windows, where `make` is not a thing, `run.cmd` has the same targets and
+needs no install:
+
+```
+run demo     run prove     run test     run marts     run report
 ```
 
 At 20,000 trips (~33s) the same run prints:
@@ -52,6 +62,7 @@ gold     trips 20000  {'complete': 19905, 'broken': 95}
 ```bash
 make test     # 94 tests, no cluster needed
 make prove    # show the logic runs with no engine installed
+make report   # write docs/results.html from the warehouse
 make up       # Kafka, Spark, Postgres and Airflow in Docker
 ```
 

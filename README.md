@@ -51,6 +51,7 @@ gold     trips 20000  {'complete': 19905, 'broken': 95}
 
 ```bash
 make test     # 94 tests, no cluster needed
+make prove    # show the logic runs with no engine installed
 make up       # Kafka, Spark, Postgres and Airflow in Docker
 ```
 
@@ -68,6 +69,27 @@ six seconds, and CI runs them on every push with no containers at all.
 
 Spark is then responsible only for distribution, and the engine is a deployment
 decision rather than a rewrite.
+
+The claim is easy to make, so `make prove` checks it rather than asserting it:
+whether an engine is importable at all, whether any module under `dispatch/`
+imports one (by parsing the AST, so a lazy import inside a function is still
+caught), and whether the pipeline and every test run regardless.
+
+```
+1. Is an engine installed on this machine?
+    not installed   pyspark
+    not installed   confluent_kafka
+    not installed   airflow
+
+2. Does any module in dispatch/ import one?
+            clean   dispatch/cdc.py
+            clean   dispatch/dedupe.py
+            ...
+
+3. Does the pipeline run anyway?
+               ok   bronze -> silver -> gold     3.1s
+               ok   94 tests                     9.0s
+```
 
 ## The failure modes this is built around
 

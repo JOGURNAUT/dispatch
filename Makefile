@@ -1,8 +1,9 @@
-.PHONY: help demo test lint clean up down marts
+.PHONY: help demo test lint clean up down marts prove
 
 help:
 	@echo "demo   generate events and run the pipeline end to end (no Docker, ~2s)"
 	@echo "test   run the test suite"
+	@echo "prove  show the logic runs with no engine installed"
 	@echo "marts  build and print the dbt marts against the local warehouse"
 	@echo "up     bring up Kafka, Spark, Postgres and Airflow"
 
@@ -12,6 +13,9 @@ demo:
 
 test:
 	python -m pytest tests/ -q
+
+prove:
+	python scripts/prove_separation.py
 
 lint:
 	ruff check dispatch transforms generator streaming dags

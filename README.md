@@ -43,7 +43,7 @@ On Windows, where `make` is not a thing, `run.cmd` has the same targets and
 needs no install:
 
 ```
-run demo     run prove     run test     run marts     run report
+.\run demo     .\run prove     .\run test     .\run marts     .\run report
 ```
 
 At 20,000 trips (~33s) the same run prints:

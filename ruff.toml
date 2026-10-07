@@ -1,0 +1,14 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+    "E501",  # long lines are nearly all prose in docstrings
+    "B008",
+]
+
+[lint.per-file-ignores]
+# Airflow's @dag decorator is invoked at import time by design; the call at the
+# bottom of the module is how the DAG is registered, not a stray expression.
+"dags/*" = ["B018"]

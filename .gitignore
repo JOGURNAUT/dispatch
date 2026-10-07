@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+data/bronze/
+data/silver/
+data/raw/
+data/_checkpoints/
+*.db
+logs/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+.pytest_cache/
+.ruff_cache/

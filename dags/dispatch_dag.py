@@ -38,6 +38,7 @@ import pendulum
 from airflow.decorators import dag, task
 from airflow.models import Variable
 
+from dispatch.notify import airflow_failure_callback
 from dispatch.quality import QualityGateFailed
 from transforms.run_pipeline import build_gold, build_silver, ingest_bronze
 from transforms.warehouse import Warehouse
@@ -54,6 +55,10 @@ DEFAULT_ARGS = {
     "retry_exponential_backoff": True,
     "max_retry_delay": pendulum.duration(minutes=30),
     "execution_timeout": pendulum.duration(hours=2),
+    # Covers what a gate cannot: an unreachable broker, an OOM, a bad deploy.
+    # The gate path alerts with the verdict text, which says more; this is the
+    # catch-all so no failure passes silently for not being a gate.
+    "on_failure_callback": airflow_failure_callback,
 }
 
 

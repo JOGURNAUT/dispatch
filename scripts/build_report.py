@@ -65,8 +65,16 @@ def fetch() -> dict:
                      FROM mart_store_daily ORDER BY date_key, store_id""")
         completeness = q("SELECT completeness, COUNT(*) AS n FROM fct_trip "
                          "GROUP BY completeness ORDER BY n DESC")
-        gates = q("""SELECT stage, check_name, passed, detail
-                     FROM run_audit ORDER BY stage, check_name""")
+        # The most recent batch only. run_audit is append-only across runs by
+        # design -- that is what makes it an audit trail -- but a results page
+        # that shows every verdict ever recorded grows a row per gate per run,
+        # and after a few demo runs the table says more about how often it was
+        # run than about the load it describes.
+        gates = [dict(r) for r in conn.execute(
+            """SELECT stage, check_name, passed, detail FROM run_audit
+               WHERE batch_id = (SELECT batch_id FROM run_audit
+                                 ORDER BY recorded_at DESC, rowid DESC LIMIT 1)
+               ORDER BY stage, check_name""").fetchall()]
         totals = q("""SELECT (SELECT COUNT(*) FROM fct_trip)    AS trips,
                              (SELECT COUNT(*) FROM dim_driver)  AS drivers,
                              (SELECT COUNT(*) FROM dim_store)   AS stores,

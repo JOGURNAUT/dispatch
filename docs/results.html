@@ -146,7 +146,7 @@
 <header>
   <h1>Dispatch — what the pipeline found</h1>
   <p class="sub">Delivery promise accuracy, per store, over 14 trading days.</p>
-  <p class="stamp">Generated 2026-10-07 21:20:59 UTC from the warehouse. Every number
+  <p class="stamp">Generated 2026-10-07 21:36:57 UTC from the warehouse. Every number
      on this page is queried at build time — none are typed in.</p>
 </header>
 
@@ -277,14 +277,6 @@
             <td><span class="verdict ok">
             PASS</span></td>
             <td class="detail">newest event is 1 day, 1:47:57.228180 old (limit 3 days, 0:00:00)</td></tr>
-<tr><td class="mono">bronze_to_silver</td><td class="mono">freshness</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">newest event is 1 day, 1:47:57.228180 old (limit 3 days, 0:00:00)</td></tr>
-<tr><td class="mono">bronze_to_silver</td><td class="mono">reconciliation</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">31305 in = 31305 accepted + 0 quarantined</td></tr>
 <tr><td class="mono">bronze_to_silver</td><td class="mono">reconciliation</td>
             <td><span class="verdict ok">
             PASS</span></td>
@@ -293,14 +285,6 @@
             <td><span class="verdict ok">
             PASS</span></td>
             <td class="detail">all driver_id values resolve in dim_driver</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">fk:driver_id</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">all driver_id values resolve in dim_driver</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">fk:store_id</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">all store_id values resolve in dim_store</td></tr>
 <tr><td class="mono">silver_to_gold</td><td class="mono">fk:store_id</td>
             <td><span class="verdict ok">
             PASS</span></td>
@@ -309,14 +293,6 @@
             <td><span class="verdict ok">
             PASS</span></td>
             <td class="detail">4809/5000 trips measurable (96.2%)</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">measurable_share</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">4809/5000 trips measurable (96.2%)</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">not_null:trip_id</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">trip_id has no nulls across 5000 rows</td></tr>
 <tr><td class="mono">silver_to_gold</td><td class="mono">not_null:trip_id</td>
             <td><span class="verdict ok">
             PASS</span></td>
@@ -325,22 +301,10 @@
             <td><span class="verdict ok">
             PASS</span></td>
             <td class="detail">fct_trip_x_dim_driver preserved all 5000 left rows</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">row_conservation</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">fct_trip_x_dim_driver preserved all 5000 left rows</td></tr>
 <tr><td class="mono">silver_to_gold</td><td class="mono">unique_key</td>
             <td><span class="verdict ok">
             PASS</span></td>
             <td class="detail">trip_id unique across 5000 rows</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">unique_key</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">trip_id unique across 5000 rows</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">volume_band</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">only 0 baseline day(s) - band not evaluated</td></tr>
 <tr><td class="mono">silver_to_gold</td><td class="mono">volume_band</td>
             <td><span class="verdict ok">
             PASS</span></td>

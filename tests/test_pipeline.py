@@ -10,18 +10,28 @@ these do not.
 from __future__ import annotations
 
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from dispatch.contracts import (
-    SILVER_COLUMNS, ContractViolation, normalise_event, parse_timestamp,
+    SILVER_COLUMNS,
+    ContractViolation,
+    normalise_event,
+    parse_timestamp,
 )
 from dispatch.dedupe import dedupe, merge_with_existing
 from dispatch.quality import (
-    BLOCK, GateReport, QualityGateFailed, check_freshness, check_measurable_share,
-    check_not_null, check_referential_integrity, check_reconciliation,
-    check_row_conservation, check_unique_key, check_volume_band,
+    GateReport,
+    QualityGateFailed,
+    check_freshness,
+    check_measurable_share,
+    check_not_null,
+    check_reconciliation,
+    check_referential_integrity,
+    check_row_conservation,
+    check_unique_key,
+    check_volume_band,
 )
 from dispatch.sessionize import sessionize
 
@@ -61,8 +71,8 @@ def full_trip(trip, start=0, tat=30, **over):
     ("2026-08-25T17:01:06", datetime(2026, 8, 25, 17, 1, 6)),
     ("2026-08-25T17:01:06Z", datetime(2026, 8, 25, 17, 1, 6)),
     ("2026-08-25T22:31:06+05:30", datetime(2026, 8, 25, 17, 1, 6)),
-    (1787562285, datetime.fromtimestamp(1787562285, timezone.utc).replace(tzinfo=None)),
-    ("1787562285000", datetime.fromtimestamp(1787562285, timezone.utc).replace(tzinfo=None)),
+    (1787562285, datetime.fromtimestamp(1787562285, UTC).replace(tzinfo=None)),
+    ("1787562285000", datetime.fromtimestamp(1787562285, UTC).replace(tzinfo=None)),
 ])
 def test_every_producer_spelling_lands_on_one_instant(raw, expected):
     """Two export paths serialised the same field differently and a parser that

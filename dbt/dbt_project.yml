@@ -1,0 +1,29 @@
+name: dispatch
+version: "1.0.0"
+config-version: 2
+profile: dispatch
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  dispatch:
+    staging:
+      # Views: staging only renames and casts, so materialising it would store a
+      # second copy of the warehouse to save no computation.
+      +materialized: view
+    marts:
+      # Tables: these are what dashboards read, and a view would re-run the
+      # aggregate on every page load.
+      +materialized: table
+
+vars:
+  # Mirrors dispatch.sessionize.DEFAULT_LAG_WINDOW. A trip silent longer than
+  # this is stalled rather than in flight.
+  lag_window_hours: 6
+  # Trips below this are too short to be real; they are almost always a
+  # mis-stamped event rather than a fast delivery.
+  min_plausible_tat: 2

@@ -1,0 +1,20 @@
+dispatch:
+  target: local
+  outputs:
+    local:
+      type: sqlite
+      threads: 4
+      database: dispatch
+      schema: main
+      schemas_and_paths:
+        main: "../data/warehouse.db"
+      schema_directory: "../data"
+    docker:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'postgres') }}"
+      port: 5432
+      user: "{{ env_var('POSTGRES_USER', 'dispatch') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'dispatch') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'dispatch') }}"
+      schema: analytics
+      threads: 4

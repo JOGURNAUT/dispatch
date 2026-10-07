@@ -1,0 +1,82 @@
+version: 2
+
+sources:
+  - name: gold
+    description: >
+      The star schema written by the Python loader. dbt reads it rather than
+      building it, because the sessionization that produces fct_trip is stateful
+      per trip and expressing it in SQL would mean a window function nobody can
+      test without a warehouse running.
+    schema: main
+    tables:
+      - name: fct_trip
+        loaded_at_field: assigned_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 36, period: hour}
+      - name: dim_driver
+      - name: dim_store
+      - name: dim_date
+      - name: run_audit
+
+models:
+  - name: stg_trip
+    description: Typed and filtered trips. The only place completeness is interpreted.
+    columns:
+      - name: trip_id
+        description: Grain. One row per trip.
+        tests: [unique, not_null]
+      - name: store_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('gold', 'dim_store')
+              field: store_id
+      - name: completeness
+        tests:
+          - accepted_values:
+              values: ['complete', 'open', 'stalled', 'broken']
+      - name: is_measurable
+        description: >
+          Whether the row may enter an average. False for every trip that has
+          not finished, which is what keeps in-flight trips out of the
+          denominator rather than dragging the mean toward zero.
+        tests: [not_null]
+
+  - name: mart_store_daily
+    description: >
+      Per store per day, over measurable trips only. The denominator is stated
+      in the table so a reader can see how much of the day it covers; a rate
+      without its denominator is a number nobody can check.
+    columns:
+      - name: store_day_key
+        tests: [unique, not_null]
+      - name: trips_measured
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+      - name: breach_rate
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, max_value: 1, inclusive: true}
+      - name: mean_tat_minutes
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: false}
+
+  - name: mart_promise_error
+    description: >
+      Where the promise formula is wrong, split by store. The formula uses one
+      global speed; the stores do not move at one speed, so the signed error
+      separates by store. This is the finding the mart exists to make visible --
+      a single pooled average hides it because the two biases partly cancel.
+    columns:
+      - name: store_id
+        tests: [unique, not_null]
+      - name: trips_measured
+        tests: [not_null]
+      - name: mean_signed_error_minutes
+        description: >
+          Signed, not absolute. The sign is the whole point: one store is being
+          over-promised and the other under-promised, and |error| reports both
+          as "wrong by 9 minutes" while hiding that the fixes point in opposite
+          directions.
+        tests: [not_null]

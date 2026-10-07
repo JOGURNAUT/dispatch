@@ -1,0 +1,21 @@
+# The dispatch package itself needs nothing beyond the standard library. That is
+# deliberate: the transformation logic is what has to be correct, and it should
+# be runnable and testable without an install step. Everything below is wiring
+# or tooling.
+
+# --- test and lint (the only ones `make test` needs)
+pytest>=8.0
+pytest-cov>=5.0
+ruff>=0.5
+
+# --- warehouse
+psycopg2-binary>=2.9        # Postgres target; SQLite needs nothing
+
+# --- streaming and distribution
+confluent-kafka>=2.4        # producer; the generator falls back to JSONL without it
+pyspark>=3.5                # structured streaming ingest
+
+# --- transformation
+dbt-core>=1.8
+dbt-postgres>=1.8
+dbt-sqlite>=1.8             # local target, so the marts run without Postgres

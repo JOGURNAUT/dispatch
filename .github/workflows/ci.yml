@@ -1,0 +1,93 @@
+name: ci
+
+# Runs on the pure-Python path: no Kafka, no Spark, no Postgres, no Docker.
+# That is the point of keeping the transformation logic free of engine imports.
+# A suite that needs four containers up is a suite that gets skipped, and the
+# rules that can actually be wrong are all in the part that needs none of them.
+
+on:
+  push: {branches: [main]}
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install pytest pytest-cov ruff
+      - name: lint
+        run: ruff check dispatch transforms generator streaming dags
+      - name: test
+        run: python -m pytest tests/ -q --cov=dispatch --cov-report=term-missing
+
+  demo:
+    # Proves the pipeline runs end to end, not just that its units pass. A green
+    # unit suite over a pipeline that cannot complete a run is a pipeline nobody
+    # has run.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install pytest
+      - name: generate and run
+        run: |
+          python -m generator.produce --trips 5000 --days 14 --out data/raw/events.jsonl
+          python -m transforms.run_pipeline all \
+            --source data/raw/events.jsonl --as-of 2026-09-16T00:00:00
+      - name: replay must not change the warehouse
+        run: |
+          python - <<'PY'
+          import hashlib, sqlite3, subprocess, sys
+
+          def fingerprint():
+              c = sqlite3.connect("data/warehouse.db")
+              rows = c.execute("SELECT trip_id, tat_minutes, is_breach, completeness "
+                               "FROM fct_trip ORDER BY trip_id").fetchall()
+              c.close()
+              return len(rows), hashlib.sha256(repr(rows).encode()).hexdigest()
+
+          before = fingerprint()
+          subprocess.run([sys.executable, "-m", "transforms.run_pipeline", "all",
+                          "--source", "data/raw/events.jsonl",
+                          "--as-of", "2026-09-16T00:00:00"], check=True)
+          after = fingerprint()
+          print(f"{before[0]} trips before, {after[0]} after")
+          if before != after:
+              sys.exit("replay changed the warehouse")
+          print("idempotent")
+          PY
+
+  dag-import:
+    # An Airflow DAG that fails to import does not appear in the UI and does not
+    # schedule. It also does not fail anything -- it is simply absent, which is
+    # the quietest way for a pipeline to stop running.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install "apache-airflow==2.9.3" --constraint
+          "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.11.txt"
+      - name: dag parses and has no cycles
+        env:
+          PYTHONPATH: .
+          AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+        run: |
+          airflow db migrate
+          airflow dags list-import-errors
+          python -c "
+          from airflow.models import DagBag
+          bag = DagBag('dags', include_examples=False)
+          assert not bag.import_errors, bag.import_errors
+          dag = bag.get_dag('dispatch_medallion')
+          assert dag is not None, 'dispatch_medallion not found'
+          print(f'{len(dag.tasks)} tasks:', [t.task_id for t in dag.tasks])
+          "

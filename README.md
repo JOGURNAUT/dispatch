@@ -48,7 +48,7 @@ gold     trips 20000  {'complete': 19905, 'broken': 95}
 ```
 
 ```bash
-make test     # 70 tests, no cluster needed
+make test     # 94 tests, no cluster needed
 make up       # Kafka, Spark, Postgres and Airflow in Docker
 ```
 
@@ -155,6 +155,39 @@ In the 20,000-trip run: **18,107** v1.1.0 records keep `vehicle_type` and
 `battery_pct`, and **2,403** keep `weather_code`, which no schema version
 declares at all.
 
+### A change stream is not an event stream
+
+Trip events are things that happened and are never amended. A driver row in the
+application's Postgres is a thing that *is*, and it changes. So facts come from
+Kafka and dimensions come from CDC of the operational database, and the two load
+differently — a fact partition is replaced, a dimension is merged.
+
+Four things in a Debezium stream break a naive consumer, each a quiet wrong
+answer rather than a crash:
+
+- **A delete has no `after`.** Code written against `after` alone skips it, so a
+  driver deleted upstream stays in the warehouse and keeps appearing in reports.
+  A delete has to produce a *tombstone*, not an absent key.
+- **A tombstone message is not a delete.** Debezium emits a null-value message
+  after a delete so Kafka compaction can drop the key. Parsed as a record it
+  becomes a row of nulls.
+- **Ordering is by LSN, not by clock.** `ts_ms` ties at millisecond resolution;
+  the Postgres LSN does not. Ordering by time lets an older update win and the
+  row silently reverts.
+- **A snapshot read is not a change.** A restarted connector re-reads the table
+  as `op: "r"`. If a snapshot can beat a streamed change, the warehouse rewinds
+  to whatever the table looked like at restart.
+
+And the merge rule that is easy to get wrong: a row **absent from the batch** is
+not a row that went away. A dimension loaded with the fact path's
+`DELETE partition; INSERT batch` empties itself the moment a quiet hour produces
+no changes, and every fact loaded afterwards fails referential integrity for a
+reason nowhere near the real cause.
+
+```bash
+python -m transforms.load_dimension --demo
+```
+
 ### Timestamp drift between producers
 
 The same logical field arrives as `2026-07-24 03:16:02` from one export path and
@@ -229,6 +262,7 @@ wrong in the tail. Those need different fixes.
 dispatch/            pure-Python transformation logic — no engine imports
   contracts.py         schema boundary, timestamp normalisation
   schema_registry.py   versioned schemas, compatibility checking, extras
+  cdc.py               Debezium envelopes, tombstones, LSN ordering
   dedupe.py            idempotent replay, natural keys, correcting re-publishes
   sessionize.py        events → trip facts, completeness, late arrival
   quality.py           the nine gates
@@ -238,7 +272,7 @@ streaming/ingest.py    Spark Structured Streaming: Kafka → bronze Parquet
 transforms/            batch runner and the warehouse loader
 dags/dispatch_dag.py   Airflow: one task per layer, gated before each load
 dbt/                   staging + two marts, 3 singular tests, 11 schema tests
-tests/                 70 tests
+tests/                 94 tests
 ```
 
 ## The generator is adversarial on purpose

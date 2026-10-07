@@ -32,9 +32,10 @@ AS_OF = datetime(2026, 9, 9)
 
 
 def gen_args(**over):
-    base = dict(trips=400, days=7, seed=11, dup_rate=0.05, correction_rate=0.02,
-                late_rate=0.03, v2_rate=0.3, null_driver_rate=0.01,
-                broken_rate=0.004, cancel_rate=0.03)
+    base = {"trips": 400, "days": 7, "seed": 11, "dup_rate": 0.05,
+            "correction_rate": 0.02, "late_rate": 0.03, "v2_rate": 0.3,
+            "null_driver_rate": 0.01, "broken_rate": 0.004, "cancel_rate": 0.03,
+            "v110_rate": 0.2, "rogue_field_rate": 0.03}
     base.update(over)
     return argparse.Namespace(**base)
 
@@ -225,3 +226,44 @@ def test_both_producer_serialisations_survive_the_whole_run(workspace):
     loaded = {r[0] for r in conn.execute("SELECT trip_id FROM fct_trip")}
     conn.close()
     assert v2_trips and v2_trips <= loaded, "v2-serialised trips were lost"
+
+
+def test_an_undeclared_field_reaches_silver_instead_of_vanishing(workspace):
+    """The quietest data loss there is.
+
+    A producer adds a field, the consumer ignores the unknown key, every run is
+    green, and the field is absent for every row from the day it appeared.
+    Nobody finds out until a report is asked for, and the only remedy then is to
+    start collecting and wait.
+    """
+    events = generate(gen_args(trips=300, v110_rate=0.4, rogue_field_rate=0.3))
+    source = write_source(workspace / "raw.jsonl", events)
+    run_pipeline.run_all(str(source), as_of=AS_OF)
+
+    preserved = set()
+    for path in (workspace / "silver").glob("dt=*.jsonl"):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            extra = json.loads(line).get("extra")
+            if extra:
+                preserved.update(json.loads(extra))
+
+    # vehicle_type is declared by 1.1.0 but is not a promoted column;
+    # weather_code is declared by no version at all. Both must survive.
+    assert "vehicle_type" in preserved
+    assert "weather_code" in preserved
+
+
+def test_mixed_schema_versions_coexist_in_one_batch(workspace):
+    """A fleet does not upgrade atomically, so both versions are in the topic at
+    once and neither may be lost for being the other one."""
+    events = generate(gen_args(trips=300, v110_rate=0.5))
+    source = write_source(workspace / "raw.jsonl", events)
+    result = run_pipeline.run_all(str(source), as_of=AS_OF)
+
+    versions = set()
+    for path in (workspace / "silver").glob("dt=*.jsonl"):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            versions.add(json.loads(line)["schema_version"])
+
+    assert versions == {"1.0.0", "1.1.0"}
+    assert result["gold"]["trips"] == 300

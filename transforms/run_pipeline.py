@@ -27,6 +27,7 @@ import sys
 import uuid
 from datetime import UTC, datetime, timedelta
 
+from dispatch import notify
 from dispatch.contracts import ContractViolation, normalise_event
 from dispatch.dedupe import dedupe
 from dispatch.quality import (
@@ -64,6 +65,20 @@ def _batch_id() -> str:
 
 def _partition(ts: datetime) -> str:
     return f"{ts:%Y-%m-%d}"
+
+
+def _alert_then_raise(report, batch_id: str, context: dict | None = None) -> None:
+    """Send on a blocking failure, then raise unchanged.
+
+    The order matters. Raising first means the alert is never built; alerting
+    instead of raising means the load is not stopped and the message is advice
+    nobody has to take. `rows_loaded=0` is the honest figure because every gate
+    here runs before its load.
+    """
+    alert = notify.from_report(report, batch_id, rows_loaded=0, context=context)
+    if alert is not None:
+        notify.send(alert)
+    report.enforce()
 
 
 # ------------------------------------------------------------------ bronze
@@ -189,7 +204,8 @@ def build_silver(batch_id: str, partitions: list[str] | None = None,
                     max_lag=MAX_SOURCE_LAG)
 
     wh.record_gates(batch_id, report)
-    report.enforce()
+    _alert_then_raise(report, batch_id, context={"partitions": len(days),
+                                                 "read": totals["read"]})
     return {"batch_id": batch_id, "partitions": days, **totals,
             "gates": report.summary()}
 
@@ -209,7 +225,11 @@ def _read_silver(days: list[str]):
             row = json.loads(line)
             row["event_ts"] = datetime.fromisoformat(row["event_ts"])
             row["ingested_at"] = datetime.fromisoformat(row["ingested_at"])
-            row.pop("schema_version", None)
+            # `extra` is written as a JSON string so a silver record stays one
+            # flat line. Parsed back rather than left as text: a caller asking
+            # for an undeclared field should get the value, not a string that
+            # happens to contain it.
+            row["extra"] = json.loads(row["extra"]) if row.get("extra") else {}
             events.append(NormalisedEvent(**row))
     return events
 
@@ -299,7 +319,8 @@ def build_gold(batch_id: str, partitions: list[str] | None = None,
     check_measurable_share(report, facts=facts, min_share=min_measurable)
 
     wh.record_gates(batch_id, report)
-    report.enforce()
+    _alert_then_raise(report, batch_id, context={"trips": len(facts),
+                                                 "partitions": len(days)})
 
     loaded = wh.load_replace(
         "fct_trip", FCT_TRIP_COLUMNS,

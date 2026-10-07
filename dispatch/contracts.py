@@ -21,10 +21,13 @@ so the join can be made deliberately rather than accidentally.
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
+
+from . import schema_registry
 
 SCHEMA_VERSION = "1.0.0"
 
@@ -60,6 +63,11 @@ SILVER_COLUMNS = (
     "promised_minutes",
     "producer_version",
     "schema_version",
+    # Fields the producer sent that the registry does not declare yet, as JSON.
+    # Carried rather than dropped so promoting one to a real column later is a
+    # backfill over data that exists, instead of a wait for new data to
+    # accumulate from the day someone noticed.
+    "extra",
 )
 
 # Accepted serialisations of a timestamp, most specific first. ISO-8601 with a
@@ -173,11 +181,30 @@ class NormalisedEvent:
     promised_minutes: int | None = None
     producer_version: str = "unknown"
     schema_version: str = SCHEMA_VERSION
+    # Declared fields this payload did not carry, plus fields it carried that
+    # the registry does not declare. Both are kept: the first so a reader can
+    # tell a defaulted value from a real one, the second so nothing a producer
+    # sent is lost before anyone has decided whether it matters.
+    extra: dict[str, Any] = field(default_factory=dict)
     # Not persisted. Carries why a record was held back, for the quarantine sink.
     issues: list[str] = field(default_factory=list)
 
     def as_row(self) -> dict[str, Any]:
-        return {name: getattr(self, name) for name in SILVER_COLUMNS}
+        row = {name: getattr(self, name) for name in SILVER_COLUMNS}
+        # Serialised at the boundary rather than by each sink, so the JSONL
+        # writer and the Parquet writer cannot disagree about the encoding.
+        row["extra"] = json.dumps(self.extra, default=str) if self.extra else None
+        return row
+
+    def get(self, name: str, default: Any = None) -> Any:
+        """A field by name, whether it is a real column or an undeclared extra.
+
+        Lets a caller read `vehicle_type` without first knowing which schema
+        version produced the row, which is the point of keeping the extras.
+        """
+        if name in SILVER_COLUMNS:
+            return getattr(self, name)
+        return self.extra.get(name, default)
 
 
 def normalise_event(raw: dict[str, Any], ingested_at: datetime | None = None) -> NormalisedEvent:
@@ -191,8 +218,23 @@ def normalise_event(raw: dict[str, Any], ingested_at: datetime | None = None) ->
     Non-fatal (recorded in `issues`): a missing dimension key, an out-of-range
     coordinate, a negative distance. The row survives, flagged, because a trip
     with no driver_id is still a real trip and discarding it understates volume.
+
+    Schema evolution: fields the registry does not declare are moved to `extra`
+    rather than ignored, and declared fields the payload omits are filled from
+    their declared defaults. Ignoring an unknown key costs nothing to write and
+    loses the field for every row from the day the producer added it.
     """
     issues: list[str] = []
+
+    declared_version = _as_text(raw.get("schema_version"))
+    known, extra = schema_registry.split_known(raw, declared_version)
+    mistyped = schema_registry.validate_types(known, declared_version)
+    if mistyped:
+        issues.extend(f"mistyped:{name}" for name in mistyped)
+    if extra:
+        # Not an error. A producer ahead of the registry is the normal case, and
+        # the flag is what makes it visible that the registry owes an update.
+        issues.append("undeclared_fields")
 
     event_id = _as_text(raw.get("event_id"))
     trip_id = _as_text(raw.get("trip_id"))
@@ -244,11 +286,25 @@ def normalise_event(raw: dict[str, Any], ingested_at: datetime | None = None) ->
         store_id=store_id,
         event_type=event_type,
         event_ts=event_ts,
-        ingested_at=ingested_at or datetime.utcnow(),
+        ingested_at=ingested_at or datetime.now(UTC).replace(tzinfo=None),
         lat=lat,
         lon=lon,
         distance_m=distance_m,
         promised_minutes=promised_minutes,
         producer_version=_as_text(raw.get("producer_version")) or "unknown",
+        schema_version=declared_version or SCHEMA_VERSION,
+        # Declared-but-absent fields are filled from their defaults and kept
+        # alongside the undeclared ones, so a reader can ask for a v1.1 field on
+        # a v1.0 row and get the declared answer instead of a KeyError.
+        # Three sources, in increasing priority: declared fields this version
+        # has that are not promoted columns (filled from their defaults), the
+        # values the payload actually carried for them, and fields no version
+        # declares at all. Dropping any of the three is a silent data loss --
+        # the second was, until a test caught vehicle_type arriving and
+        # vanishing between the contract and the row.
+        extra={k: v for k, v in schema_registry.apply_defaults(
+                   {n: val for n, val in known.items() if n not in SILVER_COLUMNS},
+                   declared_version).items()
+               if k not in SILVER_COLUMNS} | extra,
         issues=issues,
     )

@@ -16,6 +16,13 @@ Injected, each independently tunable:
                       microseconds instead of a space
   --null-driver-rate  an event with no driver_id, the row an inner join eats
   --broken-rate       a lifecycle violation: delivered before picked_up
+  --v110-rate         a producer already on schema 1.1.0, sending vehicle_type
+                      and battery_pct, which an un-updated consumer has never
+                      heard of. The fields must survive to the warehouse rather
+                      than being ignored on the way through.
+  --rogue-field-rate  a field in no schema version at all -- the real case,
+                      where a producer team ships first and tells the data team
+                      afterwards
 
 Writes to Kafka when confluent_kafka is importable and a broker answers,
 otherwise to newline-delimited JSON. The fallback is not a convenience: it means
@@ -96,6 +103,9 @@ def trip_events(trip_no: int, day: datetime, rng: random.Random, args) -> list[d
 
     start = day + timedelta(hours=rng.uniform(8, 21), minutes=rng.uniform(0, 59))
     v2 = rng.random() < args.v2_rate
+    # A producer that has moved to 1.1.0 while this consumer still declares
+    # 1.0.0 as current. Both have to coexist in one topic, because they do.
+    v110 = rng.random() < getattr(args, "v110_rate", 0.0)
     base = {
         "trip_id": trip_id,
         "order_id": f"O-{trip_no:06d}",
@@ -103,7 +113,11 @@ def trip_events(trip_no: int, day: datetime, rng: random.Random, args) -> list[d
         "distance_m": distance_m,
         "promised_minutes": _promise(distance_m),
         "producer_version": "v2" if v2 else "v1",
+        "schema_version": "1.1.0" if v110 else "1.0.0",
     }
+    if v110:
+        base["vehicle_type"] = rng.choice(["bike", "ev_bike", "scooter"])
+        base["battery_pct"] = rng.randrange(5, 100)
 
     # Travel time scales with the store's real speed, which is what makes the
     # one-size promise above wrong in a direction that depends on the store.
@@ -127,6 +141,11 @@ def trip_events(trip_no: int, day: datetime, rng: random.Random, args) -> list[d
             "lat": round(15.49 + rng.uniform(-0.05, 0.05), 6),
             "lon": round(73.82 + rng.uniform(-0.05, 0.05), 6),
         })
+        if rng.random() < getattr(args, "rogue_field_rate", 0.0):
+            # Undeclared by every version. The pipeline must keep it, not drop
+            # it: ignoring the key is free to write and loses the field for
+            # every row from the day it appeared.
+            event["weather_code"] = rng.choice(["clear", "rain", "heavy_rain"])
         out.append(event)
 
         # A trip that is cancelled mid-flight stops here. Its later stages never
@@ -235,6 +254,8 @@ def main(argv=None) -> int:
     parser.add_argument("--null-driver-rate", type=float, default=0.01)
     parser.add_argument("--broken-rate", type=float, default=0.005)
     parser.add_argument("--cancel-rate", type=float, default=0.03)
+    parser.add_argument("--v110-rate", type=float, default=0.15)
+    parser.add_argument("--rogue-field-rate", type=float, default=0.02)
     args = parser.parse_args(argv)
 
     events = generate(args)
@@ -251,6 +272,8 @@ def main(argv=None) -> int:
     print(f"  redeliveries {dups}  corrections "
           f"{sum(1 for e in events if e.get('_corrected'))}  "
           f"late {sum(1 for e in events if e.get('_delay_hours'))}")
+    print(f"  schema 1.1.0 {sum(1 for e in events if e.get('schema_version') == '1.1.0')}"
+          f"  undeclared field {sum(1 for e in events if 'weather_code' in e)}")
     return 0
 
 

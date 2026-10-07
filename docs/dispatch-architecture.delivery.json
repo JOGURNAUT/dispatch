@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "9f4e7176-fc69-4788-8686-07b1e8572554",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\RAJAT\\dispatch\\.archify\\architecture-dispatch-20261007-173106\\candidate.json",
+  "output": "C:\\Users\\RAJAT\\dispatch\\docs\\dispatch-architecture.html",
+  "specification": {
+    "sha256": "e96ac6f90f669dad8cb0dfa0588604fc12bd3b1fd973700b2db2483ca17444f5",
+    "bytes": 9764
+  },
+  "artifact": {
+    "sha256": "3bf0ed603600f0ba5a2500162c17699802719f727e1f777aa44cb85568f260b3",
+    "bytes": 780999
+  }
+}

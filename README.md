@@ -24,6 +24,9 @@ generic checklist.
                   Streaming        └──────── Airflow ─────┘
 ```
 
+**[Interactive architecture diagram →](docs/dispatch-architecture.html)** — every box carries its
+source references, pinned to the commit it was generated from.
+
 ## Run it
 
 Nothing to install. The transformation logic is standard-library Python, so the

@@ -19,9 +19,15 @@ if /i "%~1"=="help" goto :help
 goto :%~1 2>nul || goto :unknown
 
 :demo
+REM Everything a walkthrough needs, in one command. Chained rather than left as
+REM four steps to remember in order: the report reads the marts, the marts read
+REM the warehouse, and getting that order wrong in front of someone is the whole
+REM reason this file exists.
 python -m generator.produce --trips 5000 --days 14 --out data/raw/events.jsonl || exit /b 1
 python -m transforms.run_pipeline all --source data/raw/events.jsonl --as-of 2026-09-16T00:00:00 || exit /b 1
 python -m transforms.load_dimension --demo || exit /b 1
+python scripts/build_marts.py || exit /b 1
+python scripts/build_report.py || exit /b 1
 goto :eof
 
 :prove

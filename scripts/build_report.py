@@ -36,6 +36,19 @@ def fetch() -> dict:
     conn.row_factory = sqlite3.Row
     q = lambda sql: [dict(r) for r in conn.execute(sql).fetchall()]  # noqa: E731
 
+    # Checked by name rather than left to fail on the first SELECT. A missing
+    # mart otherwise surfaces as "no such table: mart_promise_error", which
+    # names the symptom and not the step that was skipped.
+    have = {r["name"] for r in q(
+        "SELECT name FROM sqlite_master WHERE type IN ('table','view')")}
+    missing = [t for t in ("stg_trip", "mart_store_daily", "mart_promise_error")
+               if t not in have]
+    if missing:
+        conn.close()
+        raise RuntimeError(
+            f"the warehouse has no {', '.join(missing)} - run `run marts` first "
+            f"(or `make marts`), which builds the dbt models this page reads")
+
     try:
         stores = q("""SELECT store_id, trips_measured, mean_signed_error_minutes,
                              mean_absolute_error_minutes, p50_error_minutes,
@@ -82,7 +95,6 @@ def fetch() -> dict:
 def render(d: dict) -> str:
     worst = max(d["stores"], key=lambda s: s["mean_signed_error_minutes"])
     best = min(d["stores"], key=lambda s: s["mean_signed_error_minutes"])
-    ratio = worst["mean_signed_error_minutes"] / best["mean_signed_error_minutes"]
     payload = json.dumps({
         "stores": d["stores"], "daily": d["daily"], "pooled": d["pooled"],
         "series": SERIES,

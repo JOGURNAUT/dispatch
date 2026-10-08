@@ -143,6 +143,15 @@ def build_silver(batch_id: str, partitions: list[str] | None = None,
     silver, and a late event re-triggers only the days it touches.
     """
     wh = warehouse or Warehouse()
+    # Every stage migrates. CREATE TABLE IF NOT EXISTS is idempotent and costs a
+    # round trip, and without it this stage assumes a schema somebody else
+    # created -- which held only because run_all() migrates once and then calls
+    # all three in the same process.
+    #
+    # Under Airflow each stage is its own task in its own process, so silver ran
+    # first against an empty database and died writing its gate verdicts:
+    # relation "run_audit" does not exist. The local runner had been hiding it.
+    wh.migrate()
     # Freshness is judged against the window the run is FOR, not against the
     # wall clock. Reading the clock here makes every backfill fail for the only
     # reason a backfill exists -- that its data is older than today.

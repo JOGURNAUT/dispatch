@@ -1,4 +1,4 @@
-# The full stack: Kafka, Spark, Postgres, Airflow.
+﻿# The full stack: Kafka, Spark, Postgres, Airflow.
 #
 # `make demo` runs the same pipeline without any of this, on SQLite, in about a
 # second. That is not a lesser version to fall back on -- it is the one that runs
@@ -8,7 +8,7 @@
 #
 #   docker compose up -d
 #   docker compose run --rm producer
-#   open http://localhost:8080   (airflow / airflow)
+#   open http://localhost:8088   (airflow / airflow)
 
 name: dispatch
 
@@ -59,35 +59,50 @@ services:
       retries: 20
 
   kafka:
-    image: bitnami/kafka:3.7
+    # apache/kafka, not bitnami/kafka. Bitnami withdrew its images from Docker
+    # Hub's public catalog, so bitnami/kafka:3.7 no longer resolves at all --
+    # the compose file was written against an image that has since vanished.
+    #
+    # The settings are the same ones; the names are not. Bitnami prefixed every
+    # broker property with KAFKA_CFG_, the official image uses KAFKA_ directly,
+    # and a property under the wrong name is silently ignored rather than
+    # rejected.
+    image: apache/kafka:3.7.0
     ports: ["9092:9092"]
     environment:
-      # KRaft: no ZooKeeper. One less container and one less thing that can be
+      # KRaft: no ZooKeeper. One less container, and one less thing that can be
       # the reason the stack does not come up on someone else's laptop.
-      KAFKA_CFG_NODE_ID: "1"
-      KAFKA_CFG_PROCESS_ROLES: controller,broker
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       # Three partitions so a consumer group has something to balance and the
-      # per-trip keying is actually exercised rather than being a no-op.
-      KAFKA_CFG_NUM_PARTITIONS: "3"
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
-      KAFKA_CFG_LOG_RETENTION_HOURS: "168"
-      ALLOW_PLAINTEXT_LISTENER: "yes"
+      # per-trip keying is exercised rather than being a no-op.
+      KAFKA_NUM_PARTITIONS: "3"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: dispatch-local-cluster-1
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      # Full path: the official image does not put the CLI on PATH, so the bare
+      # command the bitnami one accepted fails here with "not found" -- which
+      # reads as an unhealthy broker rather than a wrong healthcheck.
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
       interval: 10s
       timeout: 10s
       retries: 15
     volumes:
-      - kafkadata:/bitnami/kafka
+      - kafkadata:/var/lib/kafka/data
 
   kafka-setup:
-    image: bitnami/kafka:3.7
+    image: apache/kafka:3.7.0
     depends_on:
       kafka:
         condition: service_healthy
@@ -95,7 +110,7 @@ services:
     # and retention it is meant to have, rather than being conjured with
     # defaults by whichever client connects first.
     command: >
-      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists
       --topic trip_events --partitions 3 --replication-factor 1
       --config retention.ms=604800000
     restart: on-failure
@@ -111,7 +126,7 @@ services:
     profiles: ["manual"]
 
   spark:
-    image: bitnami/spark:3.5
+    image: apache/spark:3.5.0
     depends_on:
       kafka: {condition: service_healthy}
     environment:
@@ -123,7 +138,7 @@ services:
       - ./dispatch:/opt/dispatch/dispatch
       - ./data:/opt/dispatch/data
     command: >
-      spark-submit --master local[2]
+      /opt/spark/bin/spark-submit --master local[2]
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
       /opt/dispatch/streaming/ingest.py
       --bootstrap kafka:9092 --bronze /opt/dispatch/data/bronze
@@ -141,7 +156,12 @@ services:
   airflow-webserver:
     <<: *airflow-common
     command: airflow webserver
-    ports: ["8080:8080"]
+    # 8088 on the host, not 8080. 8080 is the most contended port on any
+    # development machine -- a leaked binding from an earlier failed start
+    # held it here with nothing visible in `docker ps` or netstat, and the
+    # only way to reclaim it was restarting Docker Desktop. The container
+    # still listens on 8080; only the published port moved.
+    ports: ["8088:8080"]
     depends_on:
       airflow-init: {condition: service_completed_successfully}
     healthcheck:

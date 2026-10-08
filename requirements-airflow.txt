@@ -1,0 +1,19 @@
+# What the Airflow image actually needs, which is much less than the dev set.
+#
+# The full requirements.txt was being installed here and it fails: dbt-postgres
+# pulls psycopg2 (the source build, not -binary), which needs pg_config from
+# libpq-dev, which is not in the image. The fix is not to add libpq-dev -- it is
+# to stop installing things this image does not run.
+#
+# Nothing in the DAG touches Spark or dbt. The DAG calls ingest_bronze,
+# build_silver and build_gold, which are plain Python; the Spark job runs in the
+# spark container and dbt is a separate step. Installing them here added ~400 MB
+# and a compiler dependency to an image that imports neither.
+
+# Postgres driver for the warehouse. The -binary wheel is prebuilt, so no
+# pg_config and no compiler.
+psycopg2-binary>=2.9
+
+# The producer container is built from this same image and publishes to Kafka.
+# Ships manylinux wheels, so it does not compile either.
+confluent-kafka>=2.4

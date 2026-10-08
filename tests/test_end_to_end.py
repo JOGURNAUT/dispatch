@@ -267,3 +267,33 @@ def test_mixed_schema_versions_coexist_in_one_batch(workspace):
 
     assert versions == {"1.0.0", "1.1.0"}
     assert result["gold"]["trips"] == 300
+
+
+def test_each_stage_works_alone_against_an_empty_database(workspace):
+    """Airflow runs each stage as its own task in its own process.
+
+    run_all() migrates once and then calls all three in-process, which hid a
+    real defect for as long as that was the only way the pipeline ran: silver
+    wrote its gate verdicts to run_audit without ever creating it. Under the
+    scheduler, silver was the first stage to touch the warehouse, and it died
+    with `relation "run_audit" does not exist`.
+
+    So each stage is called here the way the scheduler calls it -- alone, in
+    order, against a database nothing has prepared -- rather than through
+    run_all, which is the path that cannot see the problem.
+    """
+    source = write_source(workspace / "raw.jsonl", generate(gen_args(trips=200)))
+
+    bronze = run_pipeline.ingest_bronze(str(source), "batch-1")
+    silver = run_pipeline.build_silver("batch-1", bronze["partitions"], as_of=AS_OF)
+    gold = run_pipeline.build_gold("batch-1", bronze["partitions"], as_of=AS_OF)
+
+    assert silver["accepted"] > 0
+    assert gold["trips"] == 200
+
+    # And the audit trail silver tried to write actually landed.
+    conn = sqlite3.connect(os.environ["DISPATCH_DSN"])
+    stages = {r[0] for r in conn.execute(
+        "SELECT DISTINCT stage FROM run_audit WHERE batch_id = 'batch-1'")}
+    conn.close()
+    assert stages == {"bronze_to_silver", "silver_to_gold"}

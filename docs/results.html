@@ -1,454 +1,378 @@
 <!doctype html>
+<!--
+  Dispatch results page: template.
+
+  Every brace-wrapped lower_snake name below is a value the generator substitutes. The full list,
+  with what each one means and how to compute it, is in fill_example.py.
+  The CSS is written with normal single braces. Two ways to keep it out of the
+  f-string:
+    1. keep the <style> block in a plain (non-f) string constant and concatenate, or
+    2. skip f-strings and substitute only brace-wrapped lower_snake tokens with a regex, as
+       fill_example.py does. No CSS rule matches that pattern, so nothing needs escaping.
+
+  Store A is the store with the larger error and Store B the smaller.
+  Series colour: A is orange, B is blue. Both are checked for colourblind
+  separation and contrast in light and dark.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dispatch — Pipeline Results</title>
+<title>Dispatch results</title>
 <style>
-  .viz-root {
-    color-scheme: light;
-    --surface-0:      #f4f4f2;
-    --surface-1:      #fcfcfb;
-    --border:         #dedcd6;
-    --text-primary:   #0b0b0b;
-    --text-secondary: #52514e;
-    --text-muted:     #7b7a74;
-    --grid:           #e7e5df;
-    --series-NORTHGATE:   #2a78d6;
-    --series-RIVERSIDE:   #eb6834;
-    --good:           #1a7f4b;
-    --bad:            #b4281f;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:where(:not([data-theme="light"])) .viz-root {
-      color-scheme: dark;
-      --surface-0:      #121211;
-      --surface-1:      #1a1a19;
-      --border:         #343430;
-      --text-primary:   #ffffff;
-      --text-secondary: #c3c2b7;
-      --text-muted:     #8f8e85;
-      --grid:           #2b2b28;
-      --series-NORTHGATE:   #3987e5;
-      --series-RIVERSIDE:   #d95926;
-      --good:           #4ab87a;
-      --bad:            #e66767;
-    }
-  }
-  :root[data-theme="dark"] .viz-root {
+:root {
+  --bg: #fcfcfb;
+  --panel: #ffffff;
+  --ink: #0b0b0b;
+  --ink-2: #4a4a47;
+  --ink-3: #6b6b66;
+  --rule: #e4e3df;
+  --rule-strong: #c9c8c2;
+  --grid: #efeeea;
+  --a: #eb6834;
+  --b: #2a78d6;
+  --pass: #17663a;
+  --pass-bg: #e6f2ea;
+  --fail: #a4161a;
+  --fail-bg: #f8e3e3;
+  --tip-bg: #0b0b0b;
+  --tip-ink: #ffffff;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1a19; --panel: #222220; --ink: #ffffff; --ink-2: #c8c7c1; --ink-3: #9d9c96;
+    --rule: #33332f; --rule-strong: #4a4a45; --grid: #2b2b28;
+    --a: #d95926; --b: #3987e5;
+    --pass: #6fd08f; --pass-bg: #1d3325; --fail: #ff8a8a; --fail-bg: #3a1f1f;
+    --tip-bg: #f4f4f1; --tip-ink: #0b0b0b;
     color-scheme: dark;
-    --surface-0: #121211; --surface-1: #1a1a19; --border: #343430;
-    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8f8e85;
-    --grid: #2b2b28;
-    --series-NORTHGATE: #3987e5;
-    --series-RIVERSIDE: #d95926;
-    --good: #4ab87a; --bad: #e66767;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #1a1a19; --panel: #222220; --ink: #ffffff; --ink-2: #c8c7c1; --ink-3: #9d9c96;
+  --rule: #33332f; --rule-strong: #4a4a45; --grid: #2b2b28;
+  --a: #d95926; --b: #3987e5;
+  --pass: #6fd08f; --pass-bg: #1d3325; --fail: #ff8a8a; --fail-bg: #3a1f1f;
+  --tip-bg: #f4f4f1; --tip-ink: #0b0b0b;
+  color-scheme: dark;
+}
 
-  * { box-sizing: border-box; }
-  html { background: var(--surface-0); }
-  body { margin: 0; background: var(--surface-0); }
-  .viz-root {
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    color: var(--text-primary);
-    background: var(--surface-0);
-    min-height: 100vh;
-    padding: 28px 16px 64px;
-  }
-  .wrap { max-width: 1040px; margin: 0 auto; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--sans);
+}
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 32px 64px; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.eyebrow {
+  font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3); margin: 0 0 8px;
+}
+h1 {
+  margin: 0; max-width: 40ch;
+  font-size: clamp(24px, 2.6vw, 36px); line-height: 1.15; font-weight: 650; letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+h2 { margin: 0; font-size: 15px; font-weight: 650; }
+.sub { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
 
-  header { margin-bottom: 22px; }
-  h1 { font-size: 21px; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { color: var(--text-secondary); font-size: 13px; margin: 0; }
-  .stamp { color: var(--text-muted); font-size: 11.5px; margin-top: 7px;
-            font-variant-numeric: tabular-nums; }
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px; margin-bottom: 20px; }
+.stamp { font: 12px/1.4 var(--mono); color: var(--ink-3); text-align: right; }
 
-  section { background: var(--surface-1); border: 1px solid var(--border);
-             border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
-  h2 { font-size: 14px; margin: 0 0 3px; letter-spacing: -0.005em; }
-  .lede { color: var(--text-secondary); font-size: 12.5px; margin: 0 0 16px;
-           max-width: 70ch; line-height: 1.5; }
+/* hero grid */
+.hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 22px 24px; min-width: 0; }
 
-  .hero { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-end;
-           margin-bottom: 16px; }
-  .hero-item .hero-value { font-size: 32px; font-weight: 650; line-height: 1;
-                            font-variant-numeric: tabular-nums; }
-  .hero-item .hero-label { font-size: 11.5px; color: var(--text-secondary);
-                            margin-top: 6px; display: flex; align-items: center; gap: 6px; }
-  .hero-sep { color: var(--text-muted); font-size: 22px; padding-bottom: 6px; }
+/* the finding */
+.figs { display: grid; grid-template-columns: 1fr 1fr minmax(0, 0.9fr); gap: 8px 20px; margin: 14px 0 6px; align-items: end; }
+.fig .who { display: flex; align-items: center; gap: 8px; font: 600 13px/1 var(--mono); color: var(--ink-2); }
+.sw { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.sw.a { background: var(--a); } .sw.b { background: var(--b); }
+.fig .big { font: 600 clamp(36px, 3.8vw, 58px)/1 var(--mono); letter-spacing: -0.03em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.fig .unit { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
+.fig.pooled { border-left: 1px dashed var(--rule-strong); padding-left: 18px; }
+.fig.pooled .big { font-size: clamp(26px, 2.6vw, 34px); color: var(--ink-2); }
+.fig.pooled .unit { color: var(--ink-2); }
 
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 12px; }
-  .tile { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-  .tile-label { font-size: 11px; color: var(--text-secondary); }
-  .tile-value { font-size: 22px; font-weight: 620; margin-top: 3px;
-                 font-variant-numeric: tabular-nums; }
-  .tile-note { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+/* number line */
+.nl { position: relative; height: 112px; margin: 22px 10px 0; }
+.nl .track { position: absolute; left: 0; right: 0; top: 64px; height: 2px; background: var(--rule-strong); }
+.nl .tick { position: absolute; top: 60px; width: 1px; height: 10px; background: var(--rule-strong); }
+.nl .tick span { position: absolute; top: 14px; left: 0; transform: translateX(-50%); font: 11px/1 var(--mono); color: var(--ink-3); white-space: nowrap; }
+.nl .gap { position: absolute; top: 34px; height: 10px; border: 1px solid var(--ink-3); border-bottom: 0; }
+.nl .gap span { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font: 600 12px/1 var(--mono); color: var(--ink); white-space: nowrap; background: var(--panel); padding: 0 6px; }
+.nl .dot { position: absolute; top: 65px; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid var(--panel); }
+.nl .dot.a { background: var(--a); } .nl .dot.b { background: var(--b); }
+.nl .pool { position: absolute; top: 48px; height: 26px; border-left: 2px dashed var(--ink-2); margin-left: -1px; }
+.nl .pool span { position: absolute; top: 42px; left: 0; transform: translateX(-50%); font: 600 12px/1.3 var(--mono); color: var(--ink-2); white-space: nowrap; text-align: center; }
+.nl .axis-title { position: absolute; right: 0; top: 0; font: 11px/1 var(--mono); color: var(--ink-3); }
+.nl .zero-note { position: absolute; left: 0; top: 0; font: 11px/1 var(--mono); color: var(--ink-3); }
 
-  .legend { display: flex; gap: 16px; align-items: center; margin-bottom: 12px;
-             font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; }
-  .legend span.key { display: inline-flex; align-items: center; gap: 6px; }
-  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block;
-             flex: 0 0 auto; }
-  .swatch[data-store="NORTHGATE"] { background: var(--series-NORTHGATE); }
-  .swatch[data-store="RIVERSIDE"] { background: var(--series-RIVERSIDE); }
-  .swatch.pooled { background: var(--text-muted); }
+.caveat {
+  margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--rule);
+  font-size: 13.5px; color: var(--ink-2); line-height: 1.55;
+}
+.caveat strong { color: var(--ink); }
 
-  svg { display: block; width: 100%; height: auto; overflow: visible; }
-  .grid-line { stroke: var(--grid); stroke-width: 1; }
-  .axis-text { fill: var(--text-muted); font-size: 10.5px;
-                font-variant-numeric: tabular-nums; }
-  .bar-label { fill: var(--text-primary); font-size: 12px; font-weight: 600;
-                font-variant-numeric: tabular-nums; }
-  .ref-line { stroke: var(--text-muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
-  .ref-text { fill: var(--text-secondary); font-size: 10.5px; }
-  .series-line { fill: none; stroke-width: 2; }
+/* line chart */
+.chart { position: relative; margin: 16px 0 0; padding: 0 64px 22px 34px; }
+.plot { position: relative; height: 196px; }
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.plot .ln { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.plot .ln.a { stroke: var(--a); } .plot .ln.b { stroke: var(--b); }
+.gl { position: absolute; left: 0; right: 0; border-top: 1px solid var(--grid); }
+.gl.base { border-top-color: var(--rule-strong); }
+.gl span { position: absolute; right: 100%; margin-right: 8px; transform: translateY(-50%); font: 11px/1 var(--mono); color: var(--ink-3); white-space: nowrap; }
+.end { position: absolute; left: 100%; margin-left: 8px; transform: translateY(-50%); font: 600 12px/1.15 var(--mono); white-space: nowrap; color: var(--ink); }
+.end small { display: block; font-weight: 400; color: var(--ink-3); }
+.xl { display: flex; justify-content: space-between; margin-top: 6px; font: 11px/1 var(--mono); color: var(--ink-3); }
 
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  th { text-align: left; font-weight: 600; color: var(--text-secondary);
-        font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
-        padding: 0 10px 7px 0; border-bottom: 1px solid var(--border); }
-  td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border); }
-  tr:last-child td { border-bottom: 0; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  td.strong { font-weight: 650; }
-  td.mono, .mono { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
-                    font-size: 11.5px; }
-  td.detail { color: var(--text-secondary); font-size: 11.5px; }
-  .pooled-row td { color: var(--text-secondary); border-top: 1px solid var(--border); }
-  .verdict { font-size: 10.5px; font-weight: 650; padding: 1px 6px; border-radius: 4px;
-              letter-spacing: 0.03em; }
-  .verdict.ok { color: var(--good); border: 1px solid currentColor; }
-  .verdict.bad { color: var(--bad); border: 1px solid currentColor; }
-  .pill { width: 7px; height: 7px; border-radius: 50%; display: inline-block;
-           margin-right: 7px; background: var(--text-muted); }
-  .pill-complete { background: var(--good); }
-  .pill-broken { background: var(--bad); }
+.cols { position: absolute; inset: 0; display: flex; }
+.col { position: relative; flex: 1 1 0; outline: none; cursor: crosshair; }
+.col .xh { position: absolute; top: 0; bottom: 0; left: 50%; border-left: 1px solid var(--ink-3); opacity: 0; }
+.col .pt { position: absolute; left: 50%; width: 10px; height: 10px; margin: 0 0 -5px -5px; border-radius: 50%; border: 2px solid var(--panel); opacity: 0; }
+.col .pt.a { background: var(--a); } .col .pt.b { background: var(--b); }
+.col .tip {
+  position: absolute; top: -6px; left: calc(50% + 10px); z-index: 2; display: none;
+  background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 8px 10px;
+  font: 12px/1.45 var(--mono); white-space: nowrap; pointer-events: none;
+}
+.col.flip .tip { left: auto; right: calc(50% + 10px); }
+.col .tip b { display: block; font-weight: 600; margin-bottom: 2px; }
+.col .tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; font-style: normal; }
+.col .tip i.a { background: var(--a); } .col .tip i.b { background: var(--b); }
+.col:hover .xh, .col:focus-visible .xh, .col:hover .pt, .col:focus-visible .pt { opacity: 1; }
+.col:hover .tip, .col:focus-visible .tip { display: block; }
 
-  .tooltip { position: fixed; pointer-events: none; opacity: 0; transition: opacity .09s;
-              background: var(--surface-1); border: 1px solid var(--border);
-              border-radius: 7px; padding: 8px 10px; font-size: 11.5px;
-              box-shadow: 0 6px 20px rgba(0,0,0,.14); z-index: 20; min-width: 136px; }
-  .tooltip .tt-head { font-weight: 650; margin-bottom: 5px; }
-  .tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px;
-                      color: var(--text-secondary); }
-  .tooltip .tt-row b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+/* tables */
+.tbox { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font: 600 11px/1.3 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--rule-strong); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.store { white-space: nowrap; font-family: var(--mono); font-weight: 600; }
+td.store .sw { display: inline-block; vertical-align: -1px; margin-right: 8px; }
+tbody tr:hover td { background: var(--grid); }
+.split-rule { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--rule); }
 
-  .caveat { font-size: 11.5px; color: var(--text-muted); line-height: 1.55;
-             border-left: 2px solid var(--border); padding-left: 12px; margin-top: 4px; }
-  @media (max-width: 620px) { .hero { gap: 16px; } .hero-item .hero-value { font-size: 25px; } }
+/* below the fold */
+.below { margin-top: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.below .full { grid-column: 1 / -1; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 14px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.tile { background: var(--panel); padding: 14px 14px 12px; }
+.tile .v { font: 600 24px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.tile .k { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+.comp-bar { display: flex; height: 10px; margin-top: 16px; border-radius: 3px; overflow: hidden; gap: 2px; background: var(--panel); }
+.comp-bar .ok { background: var(--ink-3); }
+.comp-bar .bad { background: var(--ink); min-width: 3px; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; font: 700 11px/1 var(--mono); letter-spacing: 0.04em; padding: 4px 7px 4px 5px; border-radius: 4px; white-space: nowrap; }
+.badge svg { width: 12px; height: 12px; }
+.badge.pass { color: var(--pass); background: var(--pass-bg); }
+.badge.fail { color: var(--fail); background: var(--fail-bg); }
+td.stage { font: 12px/1.5 var(--mono); color: var(--ink-3); white-space: nowrap; }
+td.check { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+td.detail { color: var(--ink-2); min-width: 260px; }
+.tally { font: 600 13px/1 var(--mono); color: var(--pass); display: inline-flex; align-items: center; gap: 6px; }
+.tally.fail { color: var(--fail); }
+.tally svg { width: 14px; height: 14px; }
+
+@media (max-width: 1020px) {
+  .hero, .below { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 16px 16px 48px; }
+  .stamp { text-align: left; }
+  .panel { padding: 18px 16px; }
+  .figs { grid-template-columns: 1fr 1fr; }
+  .fig.pooled { grid-column: 1 / -1; border-left: 0; border-top: 1px dashed var(--rule-strong); padding: 12px 0 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .fig.pooled .who { width: 100%; }
+  .fig.pooled .big { margin-top: 0; }
+  .nl { margin-left: 6px; margin-right: 6px; }
+  .chart { padding-right: 56px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gates thead { display: none; }
+  .gates tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .gates tr:last-child { border-bottom: 0; }
+  .gates td { border: 0; padding: 0; }
+  .gates td.stage { grid-column: 1 / -1; }
+  .gates td.check { white-space: normal; overflow-wrap: anywhere; }
+  .gates td.detail { grid-column: 1 / -1; min-width: 0; margin-top: 4px; }
+  tbody .gates tr:hover td, .gates tbody tr:hover td { background: none; }
+}
 </style>
 </head>
 <body>
-<div class="viz-root">
 <div class="wrap">
 
-<header>
-  <h1>Dispatch — what the pipeline found</h1>
-  <p class="sub">Delivery promise accuracy, per store, over 14 trading days.</p>
-  <p class="stamp">Generated 2026-10-08 20:24:01 UTC from the warehouse. Every number
-     on this page is queried at build time — none are typed in.</p>
-</header>
-
-<section>
-  <h2>The finding</h2>
-  <p class="lede">The promise formula uses one global speed for every store. The
-     stores do not move at one speed, so the error it leaves behind is more than
-     twice as large at one of them — and a single pooled average hides that.</p>
-
-  <div class="hero">
-    <div class="hero-item">
-      <div class="hero-value" style="color: var(--series-NORTHGATE)">+10.01</div>
-      <div class="hero-label"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE min late, on average</div>
+  <header class="top">
+    <div>
+      <p class="eyebrow">Dispatch · delivery-promise error</p>
+      <h1>One global speed leaves NORTHGATE 2.1× as late as RIVERSIDE, and the pooled average hides it.</h1>
     </div>
-    <div class="hero-sep">vs</div>
-    <div class="hero-item">
-      <div class="hero-value" style="color: var(--series-RIVERSIDE)">+4.74</div>
-      <div class="hero-label"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE min late, on average</div>
+    <p class="stamp">generated 2026-10-08 20:33 UTC<br>from the warehouse</p>
+  </header>
+
+  <main>
+  <section class="hero" aria-label="The finding">
+
+    <!-- THE FINDING -->
+    <div class="panel">
+      <h2>Mean signed error per trip</h2>
+      <p class="sub">Actual delivery time minus promised time, in minutes. Positive means late.</p>
+
+      <div class="figs">
+        <div class="fig">
+          <div class="who"><span class="sw a"></span>NORTHGATE</div>
+          <div class="big">+10.01</div>
+          <div class="unit">min late on average</div>
+        </div>
+        <div class="fig">
+          <div class="who"><span class="sw b"></span>RIVERSIDE</div>
+          <div class="big">+4.74</div>
+          <div class="unit">min late on average</div>
+        </div>
+        <div class="fig pooled">
+          <div class="who">Pooled</div>
+          <div class="big">+7.79</div>
+          <div class="unit">matches neither store</div>
+        </div>
+      </div>
+
+      <!-- Number line: positions are % of the axis width (0 = left, 100 = right). -->
+      <div class="nl" role="img" aria-label="Number line of mean error: NORTHGATE +10.01 min, RIVERSIDE +4.74 min, pooled +7.79 min, 5.27 min apart.">
+        <span class="axis-title">minutes late →</span>
+        <div class="track"></div>
+        <div class="tick" style="left: 0.0%;"><span>0</span></div>
+        <div class="tick" style="left: 16.67%;"><span>2</span></div>
+        <div class="tick" style="left: 33.33%;"><span>4</span></div>
+        <div class="tick" style="left: 50.0%;"><span>6</span></div>
+        <div class="tick" style="left: 66.67%;"><span>8</span></div>
+        <div class="tick" style="left: 83.33%;"><span>10</span></div>
+        <div class="tick" style="left: 100.0%;"><span>12</span></div>
+        <div class="gap" style="left: 39.5%; width: 43.92%;"><span>5.27 min apart</span></div>
+        <div class="pool" style="left: 64.92%;"><span>pooled +7.79</span></div>
+        <div class="dot b" style="left: 39.5%;" title="RIVERSIDE +4.74 min"></div>
+        <div class="dot a" style="left: 83.42%;" title="NORTHGATE +10.01 min"></div>
+      </div>
+
+      <p class="caveat"><strong>Synthetic data.</strong> The events come from a seeded generator, and defects are injected on purpose. The gap measures the store speeds written into that generator, not a real fleet. What this shows is that the pipeline finds a per-store difference that a single pooled figure would report as one problem.</p>
     </div>
-    <div class="hero-sep">→</div>
-    <div class="hero-item">
-      <div class="hero-value" style="color: var(--text-secondary)">+7.79</div>
-      <div class="hero-label"><span class="swatch pooled"></span>pooled — reports one problem, not two</div>
+
+    <!-- SUPPORTING EVIDENCE -->
+    <div class="panel">
+      <h2>Breach rate by day</h2>
+      <p class="sub">NORTHGATE breached more often than RIVERSIDE on 14 of 14 days, so the gap holds from day to day.</p>
+
+      <div class="chart">
+        <div class="plot">
+          <div class="gl" style="top: 0%;"><span>100%</span></div>
+          <div class="gl" style="top: 50%;"><span>50%</span></div>
+          <div class="gl base" style="top: 100%;"><span>0%</span></div>
+          <!-- viewBox is 1000 × 100; point i sits at x = (i + 0.5) / n_days * 1000. -->
+          <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+            <polyline class="ln b" points="35.7,39.74 107.1,34.69 178.6,27.78 250.0,33.55 321.4,29.93 392.9,35.0 464.3,34.48 535.7,23.72 607.1,29.08 678.6,33.59 750.0,30.61 821.4,36.57 892.9,36.11 964.3,28.47"></polyline>
+            <polyline class="ln a" points="35.7,17.01 107.1,13.53 178.6,16.0 250.0,20.0 321.4,18.69 392.9,21.46 464.3,17.19 535.7,17.1 607.1,17.14 678.6,12.95 750.0,23.92 821.4,16.4 892.9,12.5 964.3,18.38"></polyline>
+          </svg>
+          <span class="end" style="top: 16.42%;">NORTHGATE<small>81.6%</small></span>
+          <span class="end" style="top: 30.42%;">RIVERSIDE<small>71.5%</small></span>
+          <div class="cols">
+            <div class="col" tabindex="0" aria-label="Sep 01: NORTHGATE 83.0%, RIVERSIDE 60.3%"><span class="xh"></span><span class="pt b" style="bottom: 60.26%;"></span><span class="pt a" style="bottom: 82.99%;"></span><div class="tip"><b>Sep 01</b><i class="a"></i>NORTHGATE 83.0%<br><i class="b"></i>RIVERSIDE 60.3%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 02: NORTHGATE 86.5%, RIVERSIDE 65.3%"><span class="xh"></span><span class="pt b" style="bottom: 65.31%;"></span><span class="pt a" style="bottom: 86.47%;"></span><div class="tip"><b>Sep 02</b><i class="a"></i>NORTHGATE 86.5%<br><i class="b"></i>RIVERSIDE 65.3%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 03: NORTHGATE 84.0%, RIVERSIDE 72.2%"><span class="xh"></span><span class="pt b" style="bottom: 72.22%;"></span><span class="pt a" style="bottom: 84.0%;"></span><div class="tip"><b>Sep 03</b><i class="a"></i>NORTHGATE 84.0%<br><i class="b"></i>RIVERSIDE 72.2%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 04: NORTHGATE 80.0%, RIVERSIDE 66.5%"><span class="xh"></span><span class="pt b" style="bottom: 66.45%;"></span><span class="pt a" style="bottom: 80.0%;"></span><div class="tip"><b>Sep 04</b><i class="a"></i>NORTHGATE 80.0%<br><i class="b"></i>RIVERSIDE 66.5%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 05: NORTHGATE 81.3%, RIVERSIDE 70.1%"><span class="xh"></span><span class="pt b" style="bottom: 70.07%;"></span><span class="pt a" style="bottom: 81.31%;"></span><div class="tip"><b>Sep 05</b><i class="a"></i>NORTHGATE 81.3%<br><i class="b"></i>RIVERSIDE 70.1%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 06: NORTHGATE 78.5%, RIVERSIDE 65.0%"><span class="xh"></span><span class="pt b" style="bottom: 65.0%;"></span><span class="pt a" style="bottom: 78.54%;"></span><div class="tip"><b>Sep 06</b><i class="a"></i>NORTHGATE 78.5%<br><i class="b"></i>RIVERSIDE 65.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 07: NORTHGATE 82.8%, RIVERSIDE 65.5%"><span class="xh"></span><span class="pt b" style="bottom: 65.52%;"></span><span class="pt a" style="bottom: 82.81%;"></span><div class="tip"><b>Sep 07</b><i class="a"></i>NORTHGATE 82.8%<br><i class="b"></i>RIVERSIDE 65.5%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 08: NORTHGATE 82.9%, RIVERSIDE 76.3%"><span class="xh"></span><span class="pt b" style="bottom: 76.28%;"></span><span class="pt a" style="bottom: 82.9%;"></span><div class="tip"><b>Sep 08</b><i class="a"></i>NORTHGATE 82.9%<br><i class="b"></i>RIVERSIDE 76.3%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 09: NORTHGATE 82.9%, RIVERSIDE 70.9%"><span class="xh"></span><span class="pt b" style="bottom: 70.92%;"></span><span class="pt a" style="bottom: 82.86%;"></span><div class="tip"><b>Sep 09</b><i class="a"></i>NORTHGATE 82.9%<br><i class="b"></i>RIVERSIDE 70.9%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 10: NORTHGATE 87.1%, RIVERSIDE 66.4%"><span class="xh"></span><span class="pt b" style="bottom: 66.41%;"></span><span class="pt a" style="bottom: 87.05%;"></span><div class="tip"><b>Sep 10</b><i class="a"></i>NORTHGATE 87.1%<br><i class="b"></i>RIVERSIDE 66.4%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 11: NORTHGATE 76.1%, RIVERSIDE 69.4%"><span class="xh"></span><span class="pt b" style="bottom: 69.39%;"></span><span class="pt a" style="bottom: 76.08%;"></span><div class="tip"><b>Sep 11</b><i class="a"></i>NORTHGATE 76.1%<br><i class="b"></i>RIVERSIDE 69.4%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 12: NORTHGATE 83.6%, RIVERSIDE 63.4%"><span class="xh"></span><span class="pt b" style="bottom: 63.43%;"></span><span class="pt a" style="bottom: 83.6%;"></span><div class="tip"><b>Sep 12</b><i class="a"></i>NORTHGATE 83.6%<br><i class="b"></i>RIVERSIDE 63.4%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 13: NORTHGATE 87.5%, RIVERSIDE 63.9%"><span class="xh"></span><span class="pt b" style="bottom: 63.89%;"></span><span class="pt a" style="bottom: 87.5%;"></span><div class="tip"><b>Sep 13</b><i class="a"></i>NORTHGATE 87.5%<br><i class="b"></i>RIVERSIDE 63.9%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 14: NORTHGATE 81.6%, RIVERSIDE 71.5%"><span class="xh"></span><span class="pt b" style="bottom: 71.53%;"></span><span class="pt a" style="bottom: 81.62%;"></span><div class="tip"><b>Sep 14</b><i class="a"></i>NORTHGATE 81.6%<br><i class="b"></i>RIVERSIDE 71.5%</div></div>
+          </div>
+        </div>
+        <div class="xl"><span>Sep 01</span><span>Sep 14</span></div>
+      </div>
+
+      <div class="split-rule">
+        <h2>Per store</h2>
+        <div class="tbox">
+          <table>
+            <thead>
+              <tr><th>Store</th><th class="n">Trips</th><th class="n">Mean</th><th class="n">MAE</th><th class="n">p50</th><th class="n">p90</th><th class="n">Breach</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="store"><span class="sw a"></span>NORTHGATE</td><td class="n">2,786</td><td class="n">+10.01</td><td class="n">11.08</td><td class="n">+6.70</td><td class="n">+24.92</td><td class="n">82.6%</td></tr>
+              <tr><td class="store"><span class="sw b"></span>RIVERSIDE</td><td class="n">2,023</td><td class="n">+4.74</td><td class="n">7.20</td><td class="n">+2.97</td><td class="n">+15.88</td><td class="n">67.6%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="legend">
-    <span class="key"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</span>
-    <span class="key"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</span>
-    <span class="key"><span class="swatch pooled"></span>pooled average</span>
-    <span style="color:var(--text-muted)">· signed minutes — positive means the delivery ran later than promised</span>
-  </div>
-  <svg id="error-chart" viewBox="0 0 900 230" role="img"
-       aria-label="Mean signed promise error by store, with the pooled average marked"></svg>
+  <!-- BELOW THE FOLD -->
+  <section class="below" aria-label="How the numbers were produced">
+    <div class="panel">
+      <div class="sec-head"><h2>Pipeline run</h2><span class="sub mono">Kafka → Spark → bronze/silver/gold → Postgres</span></div>
+      <div class="tiles">
+        <div class="tile"><div class="v">31,305</div><div class="k">events landed</div></div>
+        <div class="tile"><div class="v">1,468</div><div class="k">collapsed in silver</div></div>
+        <div class="tile"><div class="v">5,000</div><div class="k">trips</div></div>
+        <div class="tile"><div class="v">0</div><div class="k">quarantined</div></div>
+      </div>
+    </div>
 
-  <p class="caveat"><b>Read this as a demonstration, not a validated model.</b>
-     The events are synthetic, and the per-store speeds the marts recover are the
-     ones the generator put there — that part is circular. What is not circular
-     is the shape of the mistake: a pooled average over two populations with
-     opposite biases reports a small error and hides both.</p>
-</section>
+    <div class="panel">
+      <div class="sec-head"><h2>Trip completeness</h2><span class="sub mono">99.4% complete</span></div>
+      <div class="comp-bar" aria-hidden="true">
+        <span class="ok" style="flex: 4972 1 0;"></span>
+        <span class="bad" style="flex: 28 1 0;"></span>
+      </div>
+      <div class="tbox">
+        <table>
+          <tbody>
+            <tr><td>Complete</td><td class="n">4,972</td><td class="n">99.4%</td></tr>
+            <tr><td>Broken</td><td class="n">28</td><td class="n">0.6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<section>
-  <h2>Breach rate by day</h2>
-  <p class="lede">Share of measured trips that ran past their promise. Only
-     completed trips count — a trip still in flight has no duration yet, and
-     filling one in from the clock would make every open trip look slow.</p>
-  <div class="legend">
-    <span class="key"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</span>
-    <span class="key"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</span>
-  </div>
-  <svg id="daily-chart" viewBox="0 0 900 260" role="img"
-       aria-label="Daily breach rate per store over the trading period"></svg>
-</section>
-
-<section>
-  <h2>Per store</h2>
-  <p class="lede">p50 and p90 sit beside the mean because an average alone cannot
-     separate a formula that is uniformly off from one that is fine for most
-     trips and badly wrong in the tail. Those need different fixes.</p>
-  <table>
-    <thead><tr><th>Store</th><th class="num">Trips</th><th class="num">Mean signed</th>
-      <th class="num">MAE</th><th class="num">p50</th><th class="num">p90</th>
-      <th class="num">Breach</th></tr></thead>
-    <tbody><tr><td><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</td>
-            <td class="num">2,786</td>
-            <td class="num strong">+10.01</td>
-            <td class="num">11.08</td>
-            <td class="num">+6.70</td>
-            <td class="num">+24.92</td>
-            <td class="num">82.6%</td></tr>
-<tr><td><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</td>
-            <td class="num">2,023</td>
-            <td class="num strong">+4.74</td>
-            <td class="num">7.20</td>
-            <td class="num">+2.97</td>
-            <td class="num">+15.88</td>
-            <td class="num">67.6%</td></tr><tr class="pooled-row"><td>pooled</td>
-        <td class="num">4,809</td>
-        <td class="num strong">+7.79</td>
-        <td class="num">9.44</td>
-        <td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">&mdash;</td></tr></tbody>
-  </table>
-</section>
-
-<section>
-  <h2>Pipeline run</h2>
-  <p class="lede">What the load actually did. These are the counts the gates were
-     checked against.</p>
-  <div class="tiles"><div class="tile"><div class="tile-label">Events landed</div>
-            <div class="tile-value">31,305</div>
-            <div class="tile-note">14 day partitions</div></div>
-<div class="tile"><div class="tile-label">Collapsed in silver</div>
-            <div class="tile-value">1,468</div>
-            <div class="tile-note">redeliveries and corrections</div></div>
-<div class="tile"><div class="tile-label">Trips</div>
-            <div class="tile-value">5,000</div>
-            <div class="tile-note">56 drivers, 2 stores</div></div>
-<div class="tile"><div class="tile-label">Quarantined</div>
-            <div class="tile-value">0</div>
-            <div class="tile-note">contract violations held back</div></div></div>
-</section>
-
-<section>
-  <h2>Trip completeness</h2>
-  <p class="lede">A trip without a terminal event is not a failed trip — it is
-     either still in flight, or stalled and worth looking at. Only
-     <span class="mono">complete</span> rows carry a duration and enter an average.</p>
-  <table>
-    <thead><tr><th>State</th><th class="num">Trips</th><th class="num">Share</th></tr></thead>
-    <tbody><tr><td><span class="pill pill-complete"></span>complete</td>
-            <td class="num">4,972</td>
-            <td class="num">99.4%</td></tr>
-<tr><td><span class="pill pill-broken"></span>broken</td>
-            <td class="num">28</td>
-            <td class="num">0.6%</td></tr></tbody>
-  </table>
-</section>
-
-<section>
-  <h2>Quality gates</h2>
-  <p class="lede">Every verdict from this run, passed and failed alike. Logging
-     only failures makes a check that passed indistinguishable from one that
-     never ran. All of these run <em>before</em> their load.</p>
-  <table>
-    <thead><tr><th>Stage</th><th>Check</th><th>Verdict</th><th>Detail</th></tr></thead>
-    <tbody><tr><td class="mono">bronze_to_silver</td><td class="mono">freshness</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">newest event is 1 day, 1:47:57.228180 old (limit 3 days, 0:00:00)</td></tr>
-<tr><td class="mono">bronze_to_silver</td><td class="mono">reconciliation</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">31305 in = 31305 accepted + 0 quarantined</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">fk:driver_id</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">all driver_id values resolve in dim_driver</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">fk:store_id</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">all store_id values resolve in dim_store</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">measurable_share</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">4809/5000 trips measurable (96.2%)</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">not_null:trip_id</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">trip_id has no nulls across 5000 rows</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">row_conservation</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">fct_trip_x_dim_driver preserved all 5000 left rows</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">unique_key</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">trip_id unique across 5000 rows</td></tr>
-<tr><td class="mono">silver_to_gold</td><td class="mono">volume_band</td>
-            <td><span class="verdict ok">
-            PASS</span></td>
-            <td class="detail">only 0 baseline day(s) - band not evaluated</td></tr></tbody>
-  </table>
-</section>
+    <div class="panel full">
+      <div class="sec-head">
+        <h2>Quality gates</h2>
+        <span class="tally "><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>9 of 9 passed · each gate blocks the run on failure</span>
+      </div>
+      <div class="tbox">
+        <table class="gates">
+          <thead><tr><th>Stage</th><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="stage">bronze_to_silver</td><td class="check">freshness</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">newest event is 1 day, 1:47:57.228180 old (limit 3 days, 0:00:00)</td></tr>
+            <tr><td class="stage">bronze_to_silver</td><td class="check">reconciliation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">31305 in = 31305 accepted + 0 quarantined</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">fk:driver_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">all driver_id values resolve in dim_driver</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">fk:store_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">all store_id values resolve in dim_store</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">measurable_share</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">4809/5000 trips measurable (96.2%)</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">not_null:trip_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">trip_id has no nulls across 5000 rows</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">row_conservation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">fct_trip_x_dim_driver preserved all 5000 left rows</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">unique_key</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">trip_id unique across 5000 rows</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">volume_band</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">only 0 baseline day(s) - band not evaluated</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  </main>
 
 </div>
-</div>
-
-<div class="tooltip" id="tip" role="status" aria-live="polite"></div>
-
-<script>
-const DATA = {"stores": [{"store_id": "NORTHGATE", "trips_measured": 2786, "mean_signed_error_minutes": 10.01, "mean_absolute_error_minutes": 11.08, "p50_error_minutes": 6.7, "p90_error_minutes": 24.92, "mean_tat_minutes": 32.06, "mean_promised_minutes": 22.05, "breach_rate": 0.8263}, {"store_id": "RIVERSIDE", "trips_measured": 2023, "mean_signed_error_minutes": 4.74, "mean_absolute_error_minutes": 7.2, "p50_error_minutes": 2.97, "p90_error_minutes": 15.88, "mean_tat_minutes": 26.7, "mean_promised_minutes": 21.97, "breach_rate": 0.6757}], "daily": [{"store_id": "NORTHGATE", "date_key": "2026-09-01", "trips_total": 201, "trips_measured": 194, "mean_tat_minutes": 31.51, "breach_rate": 0.8299, "measured_share": 0.9652}, {"store_id": "RIVERSIDE", "date_key": "2026-09-01", "trips_total": 162, "trips_measured": 156, "mean_tat_minutes": 25.15, "breach_rate": 0.6026, "measured_share": 0.963}, {"store_id": "NORTHGATE", "date_key": "2026-09-02", "trips_total": 216, "trips_measured": 207, "mean_tat_minutes": 31.85, "breach_rate": 0.8647, "measured_share": 0.9583}, {"store_id": "RIVERSIDE", "date_key": "2026-09-02", "trips_total": 151, "trips_measured": 147, "mean_tat_minutes": 25.92, "breach_rate": 0.6531, "measured_share": 0.9735}, {"store_id": "NORTHGATE", "date_key": "2026-09-03", "trips_total": 237, "trips_measured": 225, "mean_tat_minutes": 31.45, "breach_rate": 0.84, "measured_share": 0.9494}, {"store_id": "RIVERSIDE", "date_key": "2026-09-03", "trips_total": 134, "trips_measured": 126, "mean_tat_minutes": 26.56, "breach_rate": 0.7222, "measured_share": 0.9403}, {"store_id": "NORTHGATE", "date_key": "2026-09-04", "trips_total": 212, "trips_measured": 210, "mean_tat_minutes": 33.11, "breach_rate": 0.8, "measured_share": 0.9906}, {"store_id": "RIVERSIDE", "date_key": "2026-09-04", "trips_total": 159, "trips_measured": 152, "mean_tat_minutes": 25.91, "breach_rate": 0.6645, "measured_share": 0.956}, {"store_id": "NORTHGATE", "date_key": "2026-09-05", "trips_total": 203, "trips_measured": 198, "mean_tat_minutes": 30.74, "breach_rate": 0.8131, "measured_share": 0.9754}, {"store_id": "RIVERSIDE", "date_key": "2026-09-05", "trips_total": 151, "trips_measured": 147, "mean_tat_minutes": 26.28, "breach_rate": 0.7007, "measured_share": 0.9735}, {"store_id": "NORTHGATE", "date_key": "2026-09-06", "trips_total": 216, "trips_measured": 205, "mean_tat_minutes": 32.06, "breach_rate": 0.7854, "measured_share": 0.9491}, {"store_id": "RIVERSIDE", "date_key": "2026-09-06", "trips_total": 167, "trips_measured": 160, "mean_tat_minutes": 25.95, "breach_rate": 0.65, "measured_share": 0.9581}, {"store_id": "NORTHGATE", "date_key": "2026-09-07", "trips_total": 197, "trips_measured": 192, "mean_tat_minutes": 30.89, "breach_rate": 0.8281, "measured_share": 0.9746}, {"store_id": "RIVERSIDE", "date_key": "2026-09-07", "trips_total": 151, "trips_measured": 145, "mean_tat_minutes": 27.57, "breach_rate": 0.6552, "measured_share": 0.9603}, {"store_id": "NORTHGATE", "date_key": "2026-09-08", "trips_total": 203, "trips_measured": 193, "mean_tat_minutes": 33.59, "breach_rate": 0.829, "measured_share": 0.9507}, {"store_id": "RIVERSIDE", "date_key": "2026-09-08", "trips_total": 162, "trips_measured": 156, "mean_tat_minutes": 27.33, "breach_rate": 0.7628, "measured_share": 0.963}, {"store_id": "NORTHGATE", "date_key": "2026-09-09", "trips_total": 217, "trips_measured": 210, "mean_tat_minutes": 31.05, "breach_rate": 0.8286, "measured_share": 0.9677}, {"store_id": "RIVERSIDE", "date_key": "2026-09-09", "trips_total": 147, "trips_measured": 141, "mean_tat_minutes": 28.16, "breach_rate": 0.7092, "measured_share": 0.9592}, {"store_id": "NORTHGATE", "date_key": "2026-09-10", "trips_total": 204, "trips_measured": 193, "mean_tat_minutes": 32.69, "breach_rate": 0.8705, "measured_share": 0.9461}, {"store_id": "RIVERSIDE", "date_key": "2026-09-10", "trips_total": 139, "trips_measured": 131, "mean_tat_minutes": 27.53, "breach_rate": 0.6641, "measured_share": 0.9424}, {"store_id": "NORTHGATE", "date_key": "2026-09-11", "trips_total": 216, "trips_measured": 209, "mean_tat_minutes": 30.2, "breach_rate": 0.7608, "measured_share": 0.9676}, {"store_id": "RIVERSIDE", "date_key": "2026-09-11", "trips_total": 150, "trips_measured": 147, "mean_tat_minutes": 27.9, "breach_rate": 0.6939, "measured_share": 0.98}, {"store_id": "NORTHGATE", "date_key": "2026-09-12", "trips_total": 196, "trips_measured": 189, "mean_tat_minutes": 33.03, "breach_rate": 0.836, "measured_share": 0.9643}, {"store_id": "RIVERSIDE", "date_key": "2026-09-12", "trips_total": 137, "trips_measured": 134, "mean_tat_minutes": 26.76, "breach_rate": 0.6343, "measured_share": 0.9781}, {"store_id": "NORTHGATE", "date_key": "2026-09-13", "trips_total": 187, "trips_measured": 176, "mean_tat_minutes": 34.53, "breach_rate": 0.875, "measured_share": 0.9412}, {"store_id": "RIVERSIDE", "date_key": "2026-09-13", "trips_total": 150, "trips_measured": 144, "mean_tat_minutes": 26.39, "breach_rate": 0.6389, "measured_share": 0.96}, {"store_id": "NORTHGATE", "date_key": "2026-09-14", "trips_total": 197, "trips_measured": 185, "mean_tat_minutes": 32.73, "breach_rate": 0.8162, "measured_share": 0.9391}, {"store_id": "RIVERSIDE", "date_key": "2026-09-14", "trips_total": 138, "trips_measured": 137, "mean_tat_minutes": 26.72, "breach_rate": 0.7153, "measured_share": 0.9928}], "pooled": {"trips_measured": 4809, "mean_signed_error_minutes": 7.79, "mean_absolute_error_minutes": 9.44}, "series": {"NORTHGATE": {"light": "#2a78d6", "dark": "#3987e5"}, "RIVERSIDE": {"light": "#eb6834", "dark": "#d95926"}}};
-const tip = document.getElementById("tip");
-
-function showTip(html, evt) {
-  tip.innerHTML = html;
-  tip.style.opacity = "1";
-  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
-  let x = evt.clientX + pad, y = evt.clientY - h / 2;
-  if (x + w > innerWidth - 8) x = evt.clientX - w - pad;
-  tip.style.left = Math.max(8, x) + "px";
-  tip.style.top = Math.min(Math.max(8, y), innerHeight - h - 8) + "px";
-}
-const hideTip = () => { tip.style.opacity = "0"; };
-const svgNS = "http://www.w3.org/2000/svg";
-function el(name, attrs, parent) {
-  const n = document.createElementNS(svgNS, name);
-  for (const k in attrs) n.setAttribute(k, attrs[k]);
-  if (parent) parent.appendChild(n);
-  return n;
-}
-
-/* ---- signed error by store: horizontal bars + pooled reference ---- */
-(function () {
-  const svg = document.getElementById("error-chart");
-  const W = 900, H = 230, L = 86, R = 150, T = 18, B = 34;
-  const rows = DATA.stores;
-  const pooled = DATA.pooled.mean_signed_error_minutes;
-  const max = Math.max(...rows.map(r => r.mean_signed_error_minutes), pooled) * 1.28;
-  const x = v => L + (v / max) * (W - L - R);
-  const band = (H - T - B) / rows.length;
-  const barH = Math.min(46, band * 0.56);
-
-  for (let t = 0; t <= max; t += 2) {
-    el("line", {x1: x(t), x2: x(t), y1: T, y2: H - B, class: "grid-line"}, svg);
-    el("text", {x: x(t), y: H - B + 15, class: "axis-text", "text-anchor": "middle"}, svg)
-      .textContent = t;
-  }
-  el("text", {x: (L + W - R) / 2, y: H - 4, class: "axis-text", "text-anchor": "middle"}, svg)
-    .textContent = "mean signed error (minutes late)";
-
-  rows.forEach((r, i) => {
-    const cy = T + band * i + band / 2;
-    const v = r.mean_signed_error_minutes;
-    el("text", {x: L - 12, y: cy + 4, class: "axis-text", "text-anchor": "end",
-                "font-size": 12}, svg).textContent = r.store_id;
-    /* 4px rounded data-end, square against the baseline */
-    const bar = el("path", {
-      d: `M ${L} ${cy - barH / 2} H ${x(v) - 4} a 4 4 0 0 1 4 4 V ${cy + barH / 2 - 4}
-          a 4 4 0 0 1 -4 4 H ${L} Z`.replace(/\s+/g, " "),
-      fill: `var(--series-${r.store_id})`, "shape-rendering": "geometricPrecision"
-    }, svg);
-    el("text", {x: x(v) + 10, y: cy + 5, class: "bar-label"}, svg)
-      .textContent = v.toFixed(2) + " min";
-
-    const hit = el("rect", {x: L, y: cy - band / 2, width: W - L - R, height: band,
-                            fill: "transparent", style: "cursor:crosshair"}, svg);
-    const tipHtml = `<div class="tt-head">${r.store_id}</div>
-      <div class="tt-row"><span>mean signed</span><b>${v.toFixed(2)} min</b></div>
-      <div class="tt-row"><span>MAE</span><b>${r.mean_absolute_error_minutes.toFixed(2)} min</b></div>
-      <div class="tt-row"><span>p50 / p90</span><b>${r.p50_error_minutes.toFixed(1)} / ${r.p90_error_minutes.toFixed(1)}</b></div>
-      <div class="tt-row"><span>breach</span><b>${(r.breach_rate * 100).toFixed(1)}%</b></div>
-      <div class="tt-row"><span>trips</span><b>${r.trips_measured.toLocaleString()}</b></div>`;
-    hit.addEventListener("mousemove", e => showTip(tipHtml, e));
-    hit.addEventListener("mouseleave", hideTip);
-    bar.style.pointerEvents = "none";
-  });
-
-  el("line", {x1: x(pooled), x2: x(pooled), y1: T - 6, y2: H - B + 2, class: "ref-line"}, svg);
-  el("text", {x: x(pooled), y: T - 10, class: "ref-text", "text-anchor": "middle"}, svg)
-    .textContent = `pooled ${pooled.toFixed(2)}`;
-})();
-
-/* ---- daily breach rate: two lines + shared crosshair ---- */
-(function () {
-  const svg = document.getElementById("daily-chart");
-  const W = 900, H = 260, L = 46, R = 58, T = 16, B = 40;
-  const days = [...new Set(DATA.daily.map(r => r.date_key))].sort();
-  const stores = [...new Set(DATA.daily.map(r => r.store_id))].sort();
-  const byKey = new Map(DATA.daily.map(r => [r.store_id + "|" + r.date_key, r]));
-  const x = i => L + (days.length < 2 ? 0 : (i / (days.length - 1)) * (W - L - R));
-  const y = v => T + (1 - v) * (H - T - B);
-
-  for (let p = 0; p <= 1.0001; p += 0.25) {
-    el("line", {x1: L, x2: W - R, y1: y(p), y2: y(p), class: "grid-line"}, svg);
-    el("text", {x: L - 9, y: y(p) + 4, class: "axis-text", "text-anchor": "end"}, svg)
-      .textContent = Math.round(p * 100) + "%";
-  }
-  days.forEach((day, i) => {
-    if (i % Math.ceil(days.length / 8) && i !== days.length - 1) return;
-    el("text", {x: x(i), y: H - B + 16, class: "axis-text", "text-anchor": "middle"}, svg)
-      .textContent = day.slice(5);
-  });
-
-  stores.forEach(store => {
-    const pts = days.map((day, i) => {
-      const row = byKey.get(store + "|" + day);
-      return row && row.breach_rate != null ? [x(i), y(row.breach_rate)] : null;
-    }).filter(Boolean);
-    if (!pts.length) return;
-    el("path", {d: "M " + pts.map(p => p.join(" ")).join(" L "),
-                class: "series-line", stroke: `var(--series-${store})`}, svg);
-    /* Direct label at the line end: identity is never colour alone. */
-    const last = pts[pts.length - 1];
-    el("text", {x: last[0] + 9, y: last[1] + 4, class: "bar-label",
-                "font-size": 11.5, fill: `var(--series-${store})`}, svg)
-      .textContent = store;
-  });
-
-  const cross = el("line", {y1: T, y2: H - B, class: "grid-line",
-                            stroke: "var(--text-muted)", opacity: 0}, svg);
-  const hit = el("rect", {x: L, y: T, width: W - L - R, height: H - T - B,
-                          fill: "transparent", style: "cursor:crosshair"}, svg);
-  hit.addEventListener("mousemove", e => {
-    const box = svg.getBoundingClientRect();
-    const px = ((e.clientX - box.left) / box.width) * W;
-    let i = Math.round(((px - L) / (W - L - R)) * (days.length - 1));
-    i = Math.max(0, Math.min(days.length - 1, i));
-    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i));
-    cross.setAttribute("opacity", 1);
-    let html = `<div class="tt-head">${days[i]}</div>`;
-    stores.forEach(s => {
-      const r = byKey.get(s + "|" + days[i]);
-      if (!r) return;
-      html += `<div class="tt-row"><span>${s}</span><b>${(r.breach_rate * 100).toFixed(1)}%</b></div>`
-            + `<div class="tt-row"><span style="padding-left:10px">measured</span>`
-            + `<b>${r.trips_measured}/${r.trips_total}</b></div>`;
-    });
-    showTip(html, e);
-  });
-  hit.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); hideTip(); });
-})();
-</script>
 </body>
 </html>

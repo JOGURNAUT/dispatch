@@ -1,0 +1,378 @@
+<!doctype html>
+<!--
+  Dispatch results page: template.
+
+  Every brace-wrapped lower_snake name below is a value the generator substitutes. The full list,
+  with what each one means and how to compute it, is in fill_example.py.
+  The CSS is written with normal single braces. Two ways to keep it out of the
+  f-string:
+    1. keep the <style> block in a plain (non-f) string constant and concatenate, or
+    2. skip f-strings and substitute only brace-wrapped lower_snake tokens with a regex, as
+       fill_example.py does. No CSS rule matches that pattern, so nothing needs escaping.
+
+  Store A is the store with the larger error and Store B the smaller.
+  Series colour: A is orange, B is blue. Both are checked for colourblind
+  separation and contrast in light and dark.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispatch results</title>
+<style>
+:root {
+  --bg: #fcfcfb;
+  --panel: #ffffff;
+  --ink: #0b0b0b;
+  --ink-2: #4a4a47;
+  --ink-3: #6b6b66;
+  --rule: #e4e3df;
+  --rule-strong: #c9c8c2;
+  --grid: #efeeea;
+  --a: #eb6834;
+  --b: #2a78d6;
+  --pass: #17663a;
+  --pass-bg: #e6f2ea;
+  --fail: #a4161a;
+  --fail-bg: #f8e3e3;
+  --tip-bg: #0b0b0b;
+  --tip-ink: #ffffff;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1a19; --panel: #222220; --ink: #ffffff; --ink-2: #c8c7c1; --ink-3: #9d9c96;
+    --rule: #33332f; --rule-strong: #4a4a45; --grid: #2b2b28;
+    --a: #d95926; --b: #3987e5;
+    --pass: #6fd08f; --pass-bg: #1d3325; --fail: #ff8a8a; --fail-bg: #3a1f1f;
+    --tip-bg: #f4f4f1; --tip-ink: #0b0b0b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1a1a19; --panel: #222220; --ink: #ffffff; --ink-2: #c8c7c1; --ink-3: #9d9c96;
+  --rule: #33332f; --rule-strong: #4a4a45; --grid: #2b2b28;
+  --a: #d95926; --b: #3987e5;
+  --pass: #6fd08f; --pass-bg: #1d3325; --fail: #ff8a8a; --fail-bg: #3a1f1f;
+  --tip-bg: #f4f4f1; --tip-ink: #0b0b0b;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--sans);
+}
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 32px 64px; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.eyebrow {
+  font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3); margin: 0 0 8px;
+}
+h1 {
+  margin: 0; max-width: 40ch;
+  font-size: clamp(24px, 2.6vw, 36px); line-height: 1.15; font-weight: 650; letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+h2 { margin: 0; font-size: 15px; font-weight: 650; }
+.sub { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px; margin-bottom: 20px; }
+.stamp { font: 12px/1.4 var(--mono); color: var(--ink-3); text-align: right; }
+
+/* hero grid */
+.hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 22px 24px; min-width: 0; }
+
+/* the finding */
+.figs { display: grid; grid-template-columns: 1fr 1fr minmax(0, 0.9fr); gap: 8px 20px; margin: 14px 0 6px; align-items: end; }
+.fig .who { display: flex; align-items: center; gap: 8px; font: 600 13px/1 var(--mono); color: var(--ink-2); }
+.sw { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.sw.a { background: var(--a); } .sw.b { background: var(--b); }
+.fig .big { font: 600 clamp(36px, 3.8vw, 58px)/1 var(--mono); letter-spacing: -0.03em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.fig .unit { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
+.fig.pooled { border-left: 1px dashed var(--rule-strong); padding-left: 18px; }
+.fig.pooled .big { font-size: clamp(26px, 2.6vw, 34px); color: var(--ink-2); }
+.fig.pooled .unit { color: var(--ink-2); }
+
+/* number line */
+.nl { position: relative; height: 112px; margin: 22px 10px 0; }
+.nl .track { position: absolute; left: 0; right: 0; top: 64px; height: 2px; background: var(--rule-strong); }
+.nl .tick { position: absolute; top: 60px; width: 1px; height: 10px; background: var(--rule-strong); }
+.nl .tick span { position: absolute; top: 14px; left: 0; transform: translateX(-50%); font: 11px/1 var(--mono); color: var(--ink-3); white-space: nowrap; }
+.nl .gap { position: absolute; top: 34px; height: 10px; border: 1px solid var(--ink-3); border-bottom: 0; }
+.nl .gap span { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font: 600 12px/1 var(--mono); color: var(--ink); white-space: nowrap; background: var(--panel); padding: 0 6px; }
+.nl .dot { position: absolute; top: 65px; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid var(--panel); }
+.nl .dot.a { background: var(--a); } .nl .dot.b { background: var(--b); }
+.nl .pool { position: absolute; top: 48px; height: 26px; border-left: 2px dashed var(--ink-2); margin-left: -1px; }
+.nl .pool span { position: absolute; top: 42px; left: 0; transform: translateX(-50%); font: 600 12px/1.3 var(--mono); color: var(--ink-2); white-space: nowrap; text-align: center; }
+.nl .axis-title { position: absolute; right: 0; top: 0; font: 11px/1 var(--mono); color: var(--ink-3); }
+.nl .zero-note { position: absolute; left: 0; top: 0; font: 11px/1 var(--mono); color: var(--ink-3); }
+
+.caveat {
+  margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--rule);
+  font-size: 13.5px; color: var(--ink-2); line-height: 1.55;
+}
+.caveat strong { color: var(--ink); }
+
+/* line chart */
+.chart { position: relative; margin: 16px 0 0; padding: 0 64px 22px 34px; }
+.plot { position: relative; height: 196px; }
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.plot .ln { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.plot .ln.a { stroke: var(--a); } .plot .ln.b { stroke: var(--b); }
+.gl { position: absolute; left: 0; right: 0; border-top: 1px solid var(--grid); }
+.gl.base { border-top-color: var(--rule-strong); }
+.gl span { position: absolute; right: 100%; margin-right: 8px; transform: translateY(-50%); font: 11px/1 var(--mono); color: var(--ink-3); white-space: nowrap; }
+.end { position: absolute; left: 100%; margin-left: 8px; transform: translateY(-50%); font: 600 12px/1.15 var(--mono); white-space: nowrap; color: var(--ink); }
+.end small { display: block; font-weight: 400; color: var(--ink-3); }
+.xl { display: flex; justify-content: space-between; margin-top: 6px; font: 11px/1 var(--mono); color: var(--ink-3); }
+
+.cols { position: absolute; inset: 0; display: flex; }
+.col { position: relative; flex: 1 1 0; outline: none; cursor: crosshair; }
+.col .xh { position: absolute; top: 0; bottom: 0; left: 50%; border-left: 1px solid var(--ink-3); opacity: 0; }
+.col .pt { position: absolute; left: 50%; width: 10px; height: 10px; margin: 0 0 -5px -5px; border-radius: 50%; border: 2px solid var(--panel); opacity: 0; }
+.col .pt.a { background: var(--a); } .col .pt.b { background: var(--b); }
+.col .tip {
+  position: absolute; top: -6px; left: calc(50% + 10px); z-index: 2; display: none;
+  background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 8px 10px;
+  font: 12px/1.45 var(--mono); white-space: nowrap; pointer-events: none;
+}
+.col.flip .tip { left: auto; right: calc(50% + 10px); }
+.col .tip b { display: block; font-weight: 600; margin-bottom: 2px; }
+.col .tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; font-style: normal; }
+.col .tip i.a { background: var(--a); } .col .tip i.b { background: var(--b); }
+.col:hover .xh, .col:focus-visible .xh, .col:hover .pt, .col:focus-visible .pt { opacity: 1; }
+.col:hover .tip, .col:focus-visible .tip { display: block; }
+
+/* tables */
+.tbox { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font: 600 11px/1.3 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--rule-strong); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.store { white-space: nowrap; font-family: var(--mono); font-weight: 600; }
+td.store .sw { display: inline-block; vertical-align: -1px; margin-right: 8px; }
+tbody tr:hover td { background: var(--grid); }
+.split-rule { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--rule); }
+
+/* below the fold */
+.below { margin-top: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.below .full { grid-column: 1 / -1; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 14px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.tile { background: var(--panel); padding: 14px 14px 12px; }
+.tile .v { font: 600 24px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.tile .k { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+.comp-bar { display: flex; height: 10px; margin-top: 16px; border-radius: 3px; overflow: hidden; gap: 2px; background: var(--panel); }
+.comp-bar .ok { background: var(--ink-3); }
+.comp-bar .bad { background: var(--ink); min-width: 3px; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; font: 700 11px/1 var(--mono); letter-spacing: 0.04em; padding: 4px 7px 4px 5px; border-radius: 4px; white-space: nowrap; }
+.badge svg { width: 12px; height: 12px; }
+.badge.pass { color: var(--pass); background: var(--pass-bg); }
+.badge.fail { color: var(--fail); background: var(--fail-bg); }
+td.stage { font: 12px/1.5 var(--mono); color: var(--ink-3); white-space: nowrap; }
+td.check { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+td.detail { color: var(--ink-2); min-width: 260px; }
+.tally { font: 600 13px/1 var(--mono); color: var(--pass); display: inline-flex; align-items: center; gap: 6px; }
+.tally.fail { color: var(--fail); }
+.tally svg { width: 14px; height: 14px; }
+
+@media (max-width: 1020px) {
+  .hero, .below { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 16px 16px 48px; }
+  .stamp { text-align: left; }
+  .panel { padding: 18px 16px; }
+  .figs { grid-template-columns: 1fr 1fr; }
+  .fig.pooled { grid-column: 1 / -1; border-left: 0; border-top: 1px dashed var(--rule-strong); padding: 12px 0 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .fig.pooled .who { width: 100%; }
+  .fig.pooled .big { margin-top: 0; }
+  .nl { margin-left: 6px; margin-right: 6px; }
+  .chart { padding-right: 56px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gates thead { display: none; }
+  .gates tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .gates tr:last-child { border-bottom: 0; }
+  .gates td { border: 0; padding: 0; }
+  .gates td.stage { grid-column: 1 / -1; }
+  .gates td.check { white-space: normal; overflow-wrap: anywhere; }
+  .gates td.detail { grid-column: 1 / -1; min-width: 0; margin-top: 4px; }
+  tbody .gates tr:hover td, .gates tbody tr:hover td { background: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <p class="eyebrow">Dispatch · delivery-promise error</p>
+      <h1>One global speed leaves FC002 2.1× as late as FC004, and the pooled average hides it.</h1>
+    </div>
+    <p class="stamp">generated 2026-10-09 01:40 IST<br>from the warehouse</p>
+  </header>
+
+  <main>
+  <section class="hero" aria-label="The finding">
+
+    <!-- THE FINDING -->
+    <div class="panel">
+      <h2>Mean signed error per trip</h2>
+      <p class="sub">Actual delivery time minus promised time, in minutes. Positive means late.</p>
+
+      <div class="figs">
+        <div class="fig">
+          <div class="who"><span class="sw a"></span>FC002</div>
+          <div class="big">+10.01</div>
+          <div class="unit">min late on average</div>
+        </div>
+        <div class="fig">
+          <div class="who"><span class="sw b"></span>FC004</div>
+          <div class="big">+4.74</div>
+          <div class="unit">min late on average</div>
+        </div>
+        <div class="fig pooled">
+          <div class="who">Pooled</div>
+          <div class="big">+7.79</div>
+          <div class="unit">matches neither store</div>
+        </div>
+      </div>
+
+      <!-- Number line: positions are % of the axis width (0 = left, 100 = right). -->
+      <div class="nl" role="img" aria-label="Number line of mean error: FC002 +10.01 min, FC004 +4.74 min, pooled +7.79 min, 5.27 min apart.">
+        <span class="axis-title">minutes late →</span>
+        <div class="track"></div>
+        <div class="tick" style="left: 0.0%;"><span>0</span></div>
+        <div class="tick" style="left: 16.67%;"><span>2</span></div>
+        <div class="tick" style="left: 33.33%;"><span>4</span></div>
+        <div class="tick" style="left: 50.0%;"><span>6</span></div>
+        <div class="tick" style="left: 66.67%;"><span>8</span></div>
+        <div class="tick" style="left: 83.33%;"><span>10</span></div>
+        <div class="tick" style="left: 100.0%;"><span>12</span></div>
+        <div class="gap" style="left: 39.5%; width: 43.92%;"><span>5.27 min apart</span></div>
+        <div class="pool" style="left: 64.92%;"><span>pooled +7.79</span></div>
+        <div class="dot b" style="left: 39.5%;" title="FC004 +4.74 min"></div>
+        <div class="dot a" style="left: 83.42%;" title="FC002 +10.01 min"></div>
+      </div>
+
+      <p class="caveat"><strong>Synthetic data.</strong> The events come from a seeded generator, and defects are injected on purpose. The gap measures the store speeds written into that generator, not a real fleet. What this shows is that the pipeline finds a per-store difference that a single pooled figure would report as one problem.</p>
+    </div>
+
+    <!-- SUPPORTING EVIDENCE -->
+    <div class="panel">
+      <h2>Breach rate by day</h2>
+      <p class="sub">FC002 breached more often than FC004 on 14 of 14 days, so the gap holds from day to day.</p>
+
+      <div class="chart">
+        <div class="plot">
+          <div class="gl" style="top: 0%;"><span>50%</span></div>
+          <div class="gl" style="top: 50%;"><span>25%</span></div>
+          <div class="gl base" style="top: 100%;"><span>0%</span></div>
+          <!-- viewBox is 1000 × 100; point i sits at x = (i + 0.5) / n_days * 1000. -->
+          <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+            <polyline class="ln b" points="35.7,72.0 107.1,76.0 178.6,70.0 250.0,74.0 321.4,68.0 392.9,78.0 464.3,72.0 535.7,70.0 607.1,76.0 678.6,74.0 750.0,66.0 821.4,76.0 892.9,72.0 964.3,74.0"></polyline>
+            <polyline class="ln a" points="35.7,38.0 107.1,42.0 178.6,32.0 250.0,40.0 321.4,34.0 392.9,44.0 464.3,30.0 535.7,36.0 607.1,40.0 678.6,28.0 750.0,38.0 821.4,42.0 892.9,34.0 964.3,36.0"></polyline>
+          </svg>
+          <span class="end" style="top: 36.0%;">FC002<small>32.0%</small></span>
+          <span class="end" style="top: 74.0%;">FC004<small>13.0%</small></span>
+          <div class="cols">
+            <div class="col" tabindex="0" aria-label="Jun 01: FC002 31.0%, FC004 14.0%"><span class="xh"></span><span class="pt b" style="bottom: 28.0%;"></span><span class="pt a" style="bottom: 62.0%;"></span><div class="tip"><b>Jun 01</b><i class="a"></i>FC002 31.0%<br><i class="b"></i>FC004 14.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 02: FC002 29.0%, FC004 12.0%"><span class="xh"></span><span class="pt b" style="bottom: 24.0%;"></span><span class="pt a" style="bottom: 58.0%;"></span><div class="tip"><b>Jun 02</b><i class="a"></i>FC002 29.0%<br><i class="b"></i>FC004 12.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 03: FC002 34.0%, FC004 15.0%"><span class="xh"></span><span class="pt b" style="bottom: 30.0%;"></span><span class="pt a" style="bottom: 68.0%;"></span><div class="tip"><b>Jun 03</b><i class="a"></i>FC002 34.0%<br><i class="b"></i>FC004 15.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 04: FC002 30.0%, FC004 13.0%"><span class="xh"></span><span class="pt b" style="bottom: 26.0%;"></span><span class="pt a" style="bottom: 60.0%;"></span><div class="tip"><b>Jun 04</b><i class="a"></i>FC002 30.0%<br><i class="b"></i>FC004 13.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 05: FC002 33.0%, FC004 16.0%"><span class="xh"></span><span class="pt b" style="bottom: 32.0%;"></span><span class="pt a" style="bottom: 66.0%;"></span><div class="tip"><b>Jun 05</b><i class="a"></i>FC002 33.0%<br><i class="b"></i>FC004 16.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 06: FC002 28.0%, FC004 11.0%"><span class="xh"></span><span class="pt b" style="bottom: 22.0%;"></span><span class="pt a" style="bottom: 56.0%;"></span><div class="tip"><b>Jun 06</b><i class="a"></i>FC002 28.0%<br><i class="b"></i>FC004 11.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 07: FC002 35.0%, FC004 14.0%"><span class="xh"></span><span class="pt b" style="bottom: 28.0%;"></span><span class="pt a" style="bottom: 70.0%;"></span><div class="tip"><b>Jun 07</b><i class="a"></i>FC002 35.0%<br><i class="b"></i>FC004 14.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 08: FC002 32.0%, FC004 15.0%"><span class="xh"></span><span class="pt b" style="bottom: 30.0%;"></span><span class="pt a" style="bottom: 64.0%;"></span><div class="tip"><b>Jun 08</b><i class="a"></i>FC002 32.0%<br><i class="b"></i>FC004 15.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 09: FC002 30.0%, FC004 12.0%"><span class="xh"></span><span class="pt b" style="bottom: 24.0%;"></span><span class="pt a" style="bottom: 60.0%;"></span><div class="tip"><b>Jun 09</b><i class="a"></i>FC002 30.0%<br><i class="b"></i>FC004 12.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Jun 10: FC002 36.0%, FC004 13.0%"><span class="xh"></span><span class="pt b" style="bottom: 26.0%;"></span><span class="pt a" style="bottom: 72.0%;"></span><div class="tip"><b>Jun 10</b><i class="a"></i>FC002 36.0%<br><i class="b"></i>FC004 13.0%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Jun 11: FC002 31.0%, FC004 17.0%"><span class="xh"></span><span class="pt b" style="bottom: 34.0%;"></span><span class="pt a" style="bottom: 62.0%;"></span><div class="tip"><b>Jun 11</b><i class="a"></i>FC002 31.0%<br><i class="b"></i>FC004 17.0%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Jun 12: FC002 29.0%, FC004 12.0%"><span class="xh"></span><span class="pt b" style="bottom: 24.0%;"></span><span class="pt a" style="bottom: 58.0%;"></span><div class="tip"><b>Jun 12</b><i class="a"></i>FC002 29.0%<br><i class="b"></i>FC004 12.0%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Jun 13: FC002 33.0%, FC004 14.0%"><span class="xh"></span><span class="pt b" style="bottom: 28.0%;"></span><span class="pt a" style="bottom: 66.0%;"></span><div class="tip"><b>Jun 13</b><i class="a"></i>FC002 33.0%<br><i class="b"></i>FC004 14.0%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Jun 14: FC002 32.0%, FC004 13.0%"><span class="xh"></span><span class="pt b" style="bottom: 26.0%;"></span><span class="pt a" style="bottom: 64.0%;"></span><div class="tip"><b>Jun 14</b><i class="a"></i>FC002 32.0%<br><i class="b"></i>FC004 13.0%</div></div>
+          </div>
+        </div>
+        <div class="xl"><span>Jun 01</span><span>Jun 14</span></div>
+      </div>
+
+      <div class="split-rule">
+        <h2>Per store</h2>
+        <div class="tbox">
+          <table>
+            <thead>
+              <tr><th>Store</th><th class="n">Trips</th><th class="n">Mean</th><th class="n">MAE</th><th class="n">p50</th><th class="n">p90</th><th class="n">Breach</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="store"><span class="sw a"></span>FC002</td><td class="n">2,894</td><td class="n">+10.01</td><td class="n">10.62</td><td class="n">+9.40</td><td class="n">+17.85</td><td class="n">31.6%</td></tr>
+              <tr><td class="store"><span class="sw b"></span>FC004</td><td class="n">2,106</td><td class="n">+4.74</td><td class="n">5.88</td><td class="n">+4.31</td><td class="n">+10.92</td><td class="n">13.6%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BELOW THE FOLD -->
+  <section class="below" aria-label="How the numbers were produced">
+    <div class="panel">
+      <div class="sec-head"><h2>Pipeline run</h2><span class="sub mono">Kafka → Spark → bronze/silver/gold → Postgres</span></div>
+      <div class="tiles">
+        <div class="tile"><div class="v">31,305</div><div class="k">events landed</div></div>
+        <div class="tile"><div class="v">1,468</div><div class="k">collapsed in silver</div></div>
+        <div class="tile"><div class="v">5,000</div><div class="k">trips</div></div>
+        <div class="tile"><div class="v">0</div><div class="k">quarantined</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-head"><h2>Trip completeness</h2><span class="sub mono">99.4% complete</span></div>
+      <div class="comp-bar" aria-hidden="true">
+        <span class="ok" style="flex: 4972 1 0;"></span>
+        <span class="bad" style="flex: 28 1 0;"></span>
+      </div>
+      <div class="tbox">
+        <table>
+          <tbody>
+            <tr><td>Complete</td><td class="n">4,972</td><td class="n">99.4%</td></tr>
+            <tr><td>Broken</td><td class="n">28</td><td class="n">0.6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel full">
+      <div class="sec-head">
+        <h2>Quality gates</h2>
+        <span class="tally "><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>9 of 9 passed · each gate blocks the run on failure</span>
+      </div>
+      <div class="tbox">
+        <table class="gates">
+          <thead><tr><th>Stage</th><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="stage">bronze</td><td class="check">schema_conforms</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">Every landed event parses against the registered schema.</td></tr>
+            <tr><td class="stage">bronze</td><td class="check">no_null_keys</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">No event is missing event_id, trip_id or ts.</td></tr>
+            <tr><td class="stage">silver</td><td class="check">dedup_effective</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">No duplicate event_id remains after collapsing.</td></tr>
+            <tr><td class="stage">silver</td><td class="check">monotonic_status</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">Each trip's status sequence moves forward only.</td></tr>
+            <tr><td class="stage">silver</td><td class="check">late_events_bounded</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">Every late event falls inside the watermark.</td></tr>
+            <tr><td class="stage">gold</td><td class="check">one_row_per_trip</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">fact_trip has exactly one row per trip_id.</td></tr>
+            <tr><td class="stage">gold</td><td class="check">fk_integrity</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">Every fact row resolves to a store, courier and date.</td></tr>
+            <tr><td class="stage">warehouse</td><td class="check">row_count_reconciles</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">Postgres counts match the gold layer.</td></tr>
+            <tr><td class="stage">dbt</td><td class="check">mart_tests</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">All dbt not-null, unique and relationship tests pass.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  </main>
+
+</div>
+</body>
+</html>

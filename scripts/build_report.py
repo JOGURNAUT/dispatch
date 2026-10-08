@@ -159,11 +159,15 @@ def breach_chart(dates, a_rates, b_rates, a_name, b_name) -> dict:
             f'<div class="tip"><b>{d}</b><i class="a"></i>{a_name} {pct(ra)}<br>'
             f'<i class="b"></i>{b_name} {pct(rb)}</div></div>')
 
-    # Keep the two end labels apart, or they collide whenever the lines converge.
+    # Keep the two end labels apart, or they collide whenever the lines
+    # converge. The threshold is a percentage of plot height, so it has to be
+    # read against the CSS: the plot is 132px and each label is two lines, so
+    # anything under about a fifth of the height overlaps. It was 14% when the
+    # plot was 196px, and shortening the plot quietly broke it.
     ta, tb = y(a_rates[-1]), y(b_rates[-1])
-    if abs(ta - tb) < 14:
+    if abs(ta - tb) < 24:
         mid = (ta + tb) / 2
-        ta, tb = (mid - 7, mid + 7) if ta <= tb else (mid + 7, mid - 7)
+        ta, tb = (mid - 12, mid + 12) if ta <= tb else (mid + 12, mid - 12)
 
     return {"line_a_points": pts(a_rates), "line_b_points": pts(b_rates),
             "y_max_label": f"{ymax * 100:.0f}%", "y_mid_label": f"{ymax * 50:.0f}%",

@@ -48,6 +48,15 @@
   code{font-family:ui-monospace,"Cascadia Mono",Menlo,monospace;font-size:12.5px;
        background:color-mix(in srgb,var(--ink) 10%,transparent);
        padding:1px 5px;border-radius:4px}
+  .sitenav{display:flex;gap:4px;align-items:center;flex-wrap:wrap;
+           margin:0 0 26px;font-size:12.5px}
+  .sitenav a{color:var(--ink-3);text-decoration:none;padding:5px 10px;
+             border-radius:6px;border:1px solid transparent;
+             transition:color .12s,border-color .12s}
+  .sitenav a:hover{color:var(--ink);border-color:var(--border)}
+  .sitenav a[aria-current="page"]{color:var(--ink);border-color:var(--border)}
+  .sitenav .spacer{flex:1}
+  .sitenav .out::after{content:" ↗";opacity:.6}
   footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--border);
          font-size:12.5px;color:var(--ink-3)}
   footer a{color:var(--accent)}
@@ -55,6 +64,14 @@
 </head>
 <body>
 <div class="wrap">
+
+  <nav class="sitenav" aria-label="Pages">
+    <a href="index.html" aria-current="page">Overview</a>
+    <a href="dispatch-architecture.html">Architecture</a>
+    <a href="results.html">Results</a>
+    <span class="spacer"></span>
+    <a class="out" href="https://github.com/JOGURNAUT/dispatch">Source</a>
+  </nav>
 
   <h1>Dispatch</h1>
   <p class="tag">A last-mile delivery telemetry pipeline: Kafka → Spark Structured

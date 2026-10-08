@@ -4870,6 +4870,36 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   </style>
 </head>
 <body>
+<style data-dispatch-nav>
+  .dispatch-nav {
+    position: fixed; top: 14px; left: 16px; z-index: 9999;
+    display: flex; gap: 4px; align-items: center;
+    font: 12.5px/1 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    background: rgba(18,18,17,.82); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 4px;
+  }
+  .dispatch-nav a {
+    color: #c3c2b7; text-decoration: none; padding: 5px 9px; border-radius: 5px;
+  }
+  .dispatch-nav a:hover { color: #fff; background: rgba(255,255,255,.1); }
+  .dispatch-nav a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.1); }
+  @media (prefers-color-scheme: light) {
+    .dispatch-nav { background: rgba(252,252,251,.9); border-color: rgba(0,0,0,.14); }
+    .dispatch-nav a { color: #52514e; }
+    .dispatch-nav a:hover, .dispatch-nav a[aria-current="page"] {
+      color: #0b0b0b; background: rgba(0,0,0,.07);
+    }
+  }
+  /* The viewer has its own controls in the top-left on narrow screens; stand
+     down rather than sit on top of them. */
+  @media (max-width: 760px) { .dispatch-nav { display: none; } }
+</style>
+<nav class="dispatch-nav" aria-label="Pages" data-dispatch-nav>
+  <a href="index.html">Overview</a>
+  <a href="dispatch-architecture.html" aria-current="page">Architecture</a>
+  <a href="results.html">Results</a>
+</nav>
+
   <!-- Toolbar: theme, live visual style, trace motion, presentation stage, and export.
        Motion appears only for trace-enabled artifacts and has no shortcut;
        Keyboard: T toggles theme, S cycles style, F toggles the stage, E opens export. -->

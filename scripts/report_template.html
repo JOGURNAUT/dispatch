@@ -68,6 +68,17 @@ body {
 }
 .wrap { max-width: 1320px; margin: 0 auto; padding: 24px 32px 64px; }
 .mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+/* Site nav. Without it every page is a dead end: someone opens results.html
+   from a resume link and there is no route to the architecture or the source,
+   which is the whole rest of the project. */
+.sitenav { display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
+  margin: 0 0 22px; font-size: 12.5px; }
+.sitenav a { color: var(--muted); text-decoration: none; padding: 5px 10px;
+  border-radius: 6px; border: 1px solid transparent; transition: color .12s, border-color .12s; }
+.sitenav a:hover { color: var(--ink); border-color: var(--line); }
+.sitenav a[aria-current="page"] { color: var(--ink); border-color: var(--line); }
+.sitenav .spacer { flex: 1; }
+.sitenav .out::after { content: " ↗"; opacity: .6; }
 .eyebrow {
   font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--ink-3); margin: 0 0 8px;
@@ -121,7 +132,11 @@ h2 { margin: 0; font-size: 15px; font-weight: 650; }
 
 /* line chart */
 .chart { position: relative; margin: 16px 0 0; padding: 0 64px 22px 34px; }
-.plot { position: relative; height: 196px; }
+/* Shorter than it looks like it should be. The y-axis starts at zero,
+   which is right for a rate -- truncating it would exaggerate the gap --
+   and real breach rates sit high, so a tall plot is mostly empty space
+   under two lines near the top. Less height, same honest axis. */
+.plot { position: relative; height: 132px; }
 .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .plot .ln { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
 .plot .ln.a { stroke: var(--a); } .plot .ln.b { stroke: var(--b); }
@@ -211,6 +226,14 @@ td.detail { color: var(--ink-2); min-width: 260px; }
 </head>
 <body>
 <div class="wrap">
+
+  <nav class="sitenav" aria-label="Pages">
+    <a href="index.html">Overview</a>
+    <a href="dispatch-architecture.html">Architecture</a>
+    <a href="results.html" aria-current="page">Results</a>
+    <span class="spacer"></span>
+    <a class="out" href="https://github.com/JOGURNAUT/dispatch">Source</a>
+  </nav>
 
   <header class="top">
     <div>

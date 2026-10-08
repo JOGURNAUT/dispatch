@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispatch — Last-Mile Delivery Pipeline</title>
+<meta name="description" content="Kafka to Spark to a medallion lake to a star schema, orchestrated by Airflow, with nine blocking data-quality gates.">
+<style>
+  :root {
+    color-scheme: light;
+    --bg:#f4f4f2; --card:#fcfcfb; --border:#dedcd6;
+    --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#7b7a74; --accent:#2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg:#121211; --card:#1a1a19; --border:#343430;
+      --ink:#fff; --ink-2:#c3c2b7; --ink-3:#8f8e85; --accent:#3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg:#121211; --card:#1a1a19; --border:#343430;
+    --ink:#fff; --ink-2:#c3c2b7; --ink-3:#8f8e85; --accent:#3987e5;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--bg);margin:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+       color:var(--ink);padding:48px 16px 72px;line-height:1.5}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 8px;letter-spacing:-.02em}
+  .tag{color:var(--ink-2);font-size:14px;margin:0 0 6px;max-width:62ch}
+  .meta{color:var(--ink-3);font-size:12.5px;font-variant-numeric:tabular-nums;
+        margin:0 0 30px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+         gap:14px;margin-bottom:30px}
+  a.card{display:block;background:var(--card);border:1px solid var(--border);
+         border-radius:10px;padding:18px 20px;text-decoration:none;color:inherit;
+         transition:border-color .12s,transform .12s}
+  a.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .card h2{font-size:14.5px;margin:0 0 5px;color:var(--accent)}
+  .card p{font-size:12.5px;color:var(--ink-2);margin:0}
+  h3{font-size:12px;text-transform:uppercase;letter-spacing:.07em;
+     color:var(--ink-3);margin:30px 0 10px;font-weight:600}
+  ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+  li{margin-bottom:7px}
+  li b{color:var(--ink)}
+  code{font-family:ui-monospace,"Cascadia Mono",Menlo,monospace;font-size:12.5px;
+       background:color-mix(in srgb,var(--ink) 10%,transparent);
+       padding:1px 5px;border-radius:4px}
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--border);
+         font-size:12.5px;color:var(--ink-3)}
+  footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Dispatch</h1>
+  <p class="tag">A last-mile delivery telemetry pipeline: Kafka → Spark Structured
+     Streaming → a bronze/silver/gold lake → a star schema, orchestrated by Airflow,
+     with dbt marts and nine blocking data-quality gates.</p>
+  <p class="meta">125,352 events · 20,000 trips · 21 partitions · 94 tests · 0 containers needed</p>
+
+  <div class="cards">
+    <a class="card" href="dispatch-architecture.html">
+      <h2>Architecture →</h2>
+      <p>The system, box by box. Every component links to the exact file and line
+         that implements it, pinned to the commit it was generated from.</p>
+    </a>
+    <a class="card" href="results.html">
+      <h2>Results →</h2>
+      <p>What the pipeline found, generated from the warehouse at build time.
+         Per-store promise error, daily breach rates, and every gate verdict.</p>
+    </a>
+  </div>
+
+  <h3>What it is built around</h3>
+  <ul>
+    <li><b>A replay must not change the answer.</b> Kafka is at-least-once, so
+      duplicates arrive; a producer also re-sends corrected events, which
+      <code>DISTINCT</code> keeps as separate rows. Identity is declared instead —
+      5,948 redeliveries collapsed, 1,155 corrections applied.</li>
+    <li><b>A null is not a fact.</b> A trip with no delivered event is either in
+      flight or its event has not arrived. Trips carry a completeness label, and
+      only completed ones enter an average.</li>
+    <li><b>A LEFT JOIN that behaves as INNER raises nothing.</b> It just returns a
+      smaller, reasonable-looking table. A gate asserts row counts survive the join.</li>
+    <li><b>Gates run before the load, not after.</b> A validate step downstream of
+      a load means the bad rows are already being read.</li>
+    <li><b>The logic imports no engine.</b> Nothing under <code>dispatch/</code>
+      imports Spark, Kafka or Airflow, so 94 tests and a full run execute in CI
+      with no containers.</li>
+  </ul>
+
+  <h3>The data</h3>
+  <ul>
+    <li>Events are <b>generated, not downloaded</b>, by a seeded script in the
+      repository. Public datasets are clean, and a clean dataset cannot exercise a
+      quality gate.</li>
+    <li>Defects are injected deliberately and each rate is tunable: redeliveries,
+      corrections, late arrivals, two timestamp serialisations, mixed schema
+      versions, undeclared fields, lifecycle violations.</li>
+    <li>So the per-store finding on the results page is a <b>demonstration, not a
+      validated model</b> — the marts recover speeds the generator put there. What
+      is not circular is that a pooled average hides the split.</li>
+  </ul>
+
+  <footer>
+    <a href="https://github.com/JOGURNAUT/dispatch">Source on GitHub</a> ·
+    built by Rajat Srivastava
+  </footer>
+
+</div>
+</body>
+</html>

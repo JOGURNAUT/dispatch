@@ -25,7 +25,7 @@ import pathlib
 import re
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -235,7 +235,7 @@ def build(d: dict) -> str:
     passed = sum(1 for g in d["gates"] if g["passed"])
 
     values = {
-        "generated_at": datetime.now(timezone.utc).replace(tzinfo=None)
+        "generated_at": datetime.now(UTC).replace(tzinfo=None)
                                 .strftime("%Y-%m-%d %H:%M UTC"),
         "a_name": a["store_id"], "b_name": b["store_id"],
         "ratio": f"{a_mean / b_mean:.1f}" if b_mean else "—",

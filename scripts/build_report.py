@@ -24,8 +24,8 @@ OUT = ROOT / "docs" / "results.html"
 # pass all six checks for this pair: worst adjacent CVD dE 24.7 light / 26.8
 # dark, normal-vision 33.6 / 31.8, contrast >= 3:1 on both surfaces.
 SERIES = {
-    "FC002": {"light": "#2a78d6", "dark": "#3987e5"},
-    "FC004": {"light": "#eb6834", "dark": "#d95926"},
+    "NORTHGATE": {"light": "#2a78d6", "dark": "#3987e5"},
+    "RIVERSIDE": {"light": "#eb6834", "dark": "#d95926"},
 }
 
 
@@ -161,8 +161,8 @@ def render(d: dict) -> str:
     --text-secondary: #52514e;
     --text-muted:     #7b7a74;
     --grid:           #e7e5df;
-    --series-FC002:   {SERIES['FC002']['light']};
-    --series-FC004:   {SERIES['FC004']['light']};
+    --series-NORTHGATE:   {SERIES['NORTHGATE']['light']};
+    --series-RIVERSIDE:   {SERIES['RIVERSIDE']['light']};
     --good:           #1a7f4b;
     --bad:            #b4281f;
   }}
@@ -176,8 +176,8 @@ def render(d: dict) -> str:
       --text-secondary: #c3c2b7;
       --text-muted:     #8f8e85;
       --grid:           #2b2b28;
-      --series-FC002:   {SERIES['FC002']['dark']};
-      --series-FC004:   {SERIES['FC004']['dark']};
+      --series-NORTHGATE:   {SERIES['NORTHGATE']['dark']};
+      --series-RIVERSIDE:   {SERIES['RIVERSIDE']['dark']};
       --good:           #4ab87a;
       --bad:            #e66767;
     }}
@@ -187,8 +187,8 @@ def render(d: dict) -> str:
     --surface-0: #121211; --surface-1: #1a1a19; --border: #343430;
     --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8f8e85;
     --grid: #2b2b28;
-    --series-FC002: {SERIES['FC002']['dark']};
-    --series-FC004: {SERIES['FC004']['dark']};
+    --series-NORTHGATE: {SERIES['NORTHGATE']['dark']};
+    --series-RIVERSIDE: {SERIES['RIVERSIDE']['dark']};
     --good: #4ab87a; --bad: #e66767;
   }}
 
@@ -237,8 +237,8 @@ def render(d: dict) -> str:
   .legend span.key {{ display: inline-flex; align-items: center; gap: 6px; }}
   .swatch {{ width: 10px; height: 10px; border-radius: 2px; display: inline-block;
              flex: 0 0 auto; }}
-  .swatch[data-store="FC002"] {{ background: var(--series-FC002); }}
-  .swatch[data-store="FC004"] {{ background: var(--series-FC004); }}
+  .swatch[data-store="NORTHGATE"] {{ background: var(--series-NORTHGATE); }}
+  .swatch[data-store="RIVERSIDE"] {{ background: var(--series-RIVERSIDE); }}
   .swatch.pooled {{ background: var(--text-muted); }}
 
   svg {{ display: block; width: 100%; height: auto; overflow: visible; }}
@@ -321,8 +321,8 @@ def render(d: dict) -> str:
   </div>
 
   <div class="legend">
-    <span class="key"><span class="swatch" data-store="FC002"></span>FC002</span>
-    <span class="key"><span class="swatch" data-store="FC004"></span>FC004</span>
+    <span class="key"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</span>
+    <span class="key"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</span>
     <span class="key"><span class="swatch pooled"></span>pooled average</span>
     <span style="color:var(--text-muted)">· signed minutes — positive means the delivery ran later than promised</span>
   </div>
@@ -342,8 +342,8 @@ def render(d: dict) -> str:
      completed trips count — a trip still in flight has no duration yet, and
      filling one in from the clock would make every open trip look slow.</p>
   <div class="legend">
-    <span class="key"><span class="swatch" data-store="FC002"></span>FC002</span>
-    <span class="key"><span class="swatch" data-store="FC004"></span>FC004</span>
+    <span class="key"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</span>
+    <span class="key"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</span>
   </div>
   <svg id="daily-chart" viewBox="0 0 900 260" role="img"
        aria-label="Daily breach rate per store over the trading period"></svg>

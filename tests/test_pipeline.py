@@ -44,7 +44,7 @@ def ev(trip, etype, minutes, *, eid=None, ingested=0, **over):
         "trip_id": trip,
         "order_id": f"O-{trip[2:]}",
         "driver_id": "D-001",
-        "store_id": "FC002",
+        "store_id": "NORTHGATE",
         "event_type": etype,
         "event_ts": T0 + timedelta(minutes=minutes),
         "distance_m": 4200,

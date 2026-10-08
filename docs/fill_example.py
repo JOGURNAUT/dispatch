@@ -112,7 +112,7 @@ def render(template: str, v: dict) -> str:
 
 if __name__ == "__main__":
     # ---- figures from the brief ----
-    a_name, b_name = "FC002", "FC004"          # A = the store with the larger error
+    a_name, b_name = "NORTHGATE", "RIVERSIDE"          # A = the store with the larger error
     a_mean, b_mean, pooled = 10.01, 4.74, 7.79
     complete, broken = 4972, 28
 

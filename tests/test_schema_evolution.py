@@ -35,7 +35,7 @@ def payload(**over):
     base = {
         "event_id": "e-1", "trip_id": "T-1", "event_type": "assigned",
         "event_ts": "2026-09-01 10:00:00", "order_id": "O-1",
-        "driver_id": "D-1", "store_id": "FC002", "distance_m": 4200,
+        "driver_id": "D-1", "store_id": "NORTHGATE", "distance_m": 4200,
         "promised_minutes": 45, "producer_version": "v1",
     }
     base.update(over)

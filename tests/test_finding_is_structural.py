@@ -5,8 +5,8 @@ wrong as the other's, and that a pooled average hides it. Those numbers come
 from generated data, so the obvious objection is the right one: is this a
 property of the system, or of the particular random draw that produced it?
 
-The generator holds both kinds of thing. The STRUCTURE is fixed -- FC002 moves
-at 17 km/h and FC004 at 25, written into the source, while the promise formula
+The generator holds both kinds of thing. The STRUCTURE is fixed -- NORTHGATE moves
+at 17 km/h and RIVERSIDE at 25, written into the source, while the promise formula
 uses one global speed for both. The NOISE is seeded -- which store each trip
 belongs to, how far it goes, how long each leg takes.
 
@@ -86,21 +86,21 @@ def across_seeds():
 
 
 def test_the_slower_store_is_always_the_more_wrong_one(across_seeds):
-    """The finding itself. FC002 moves at 17 km/h against FC004's 25, and the
-    promise formula knows about neither, so FC002 must come out worse on every
+    """The finding itself. NORTHGATE moves at 17 km/h against RIVERSIDE's 25, and the
+    promise formula knows about neither, so NORTHGATE must come out worse on every
     draw. If this fails, either the speeds were changed or the formula started
     reading the store."""
     for seed, result in across_seeds.items():
-        assert result["FC002"] > result["FC004"], (
-            f"seed {seed}: FC002 {result['FC002']:.2f} is not worse than "
-            f"FC004 {result['FC004']:.2f} -- the finding did not survive")
+        assert result["NORTHGATE"] > result["RIVERSIDE"], (
+            f"seed {seed}: NORTHGATE {result['NORTHGATE']:.2f} is not worse than "
+            f"RIVERSIDE {result['RIVERSIDE']:.2f} -- the finding did not survive")
 
 
 def test_the_gap_is_large_enough_to_be_worth_reporting(across_seeds):
     """'More than twice as wrong' is the claim on the results page. A gap of a
     few tenths would be noise wearing a finding's clothes."""
     for seed, result in across_seeds.items():
-        ratio = result["FC002"] / result["FC004"]
+        ratio = result["NORTHGATE"] / result["RIVERSIDE"]
         assert ratio > 1.8, (
             f"seed {seed}: ratio {ratio:.2f} is too small for the page's claim")
 
@@ -112,9 +112,9 @@ def test_the_pooled_average_sits_between_the_two_stores(across_seeds):
     moderate problem instead of two different ones pointing opposite ways.
     """
     for seed, result in across_seeds.items():
-        assert result["FC004"] < result["_pooled"] < result["FC002"], (
+        assert result["RIVERSIDE"] < result["_pooled"] < result["NORTHGATE"], (
             f"seed {seed}: pooled {result['_pooled']:.2f} is not between "
-            f"{result['FC004']:.2f} and {result['FC002']:.2f}")
+            f"{result['RIVERSIDE']:.2f} and {result['NORTHGATE']:.2f}")
 
 
 def test_the_decimals_move_but_the_ordering_does_not(across_seeds):
@@ -125,18 +125,18 @@ def test_the_decimals_move_but_the_ordering_does_not(across_seeds):
     the system. This asserts both halves: that the numbers genuinely vary, and
     that the conclusion genuinely does not.
     """
-    fc002 = [r["FC002"] for r in across_seeds.values()]
-    fc004 = [r["FC004"] for r in across_seeds.values()]
+    fc002 = [r["NORTHGATE"] for r in across_seeds.values()]
+    fc004 = [r["RIVERSIDE"] for r in across_seeds.values()]
 
     # They move -- if they did not, the seed is not reaching the generator and
     # every other test here would be checking the same run four times.
-    assert len(set(round(v, 2) for v in fc002)) > 1, "FC002 identical across seeds"
+    assert len({round(v, 2) for v in fc002}) > 1, "NORTHGATE identical across seeds"
     assert max(fc002) - min(fc002) > 0.01
 
     # And they never cross.
     assert min(fc002) > max(fc004), (
-        f"the worst FC002 draw ({min(fc002):.2f}) must still beat the best "
-        f"FC004 draw ({max(fc004):.2f}) or the ordering is luck")
+        f"the worst NORTHGATE draw ({min(fc002):.2f}) must still beat the best "
+        f"RIVERSIDE draw ({max(fc004):.2f}) or the ordering is luck")
 
 
 def test_the_same_seed_gives_the_same_answer_twice():
@@ -160,9 +160,9 @@ def test_the_generator_still_declares_two_differently_paced_stores():
     """
     speeds = {code: kmh for code, _share, kmh in STORES}
     assert len(speeds) >= 2, "the finding needs at least two stores"
-    assert speeds["FC002"] < speeds["FC004"], (
-        "FC002 is supposed to be the slower store; the finding is written "
+    assert speeds["NORTHGATE"] < speeds["RIVERSIDE"], (
+        "NORTHGATE is supposed to be the slower store; the finding is written "
         "around that and the results page says so")
-    assert speeds["FC004"] / speeds["FC002"] > 1.2, (
+    assert speeds["RIVERSIDE"] / speeds["NORTHGATE"] > 1.2, (
         "the two speeds are too close for the promise formula's single global "
         "speed to be visibly wrong at one of them")

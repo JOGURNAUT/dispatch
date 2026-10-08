@@ -270,7 +270,7 @@ def build_gold(batch_id: str, partitions: list[str] | None = None,
     date_keys = sorted({_partition(f.assigned_at) for f in facts if f.assigned_at})
 
     wh.load_replace("dim_store", ("store_id", "store_name", "city"),
-                    [(s, f"Fulfilment Centre {s[-3:]}", "Goa") for s in stores],
+                    [(s, s.title() + " Depot", "Mirefield") for s in stores],
                     partition_column=None)
     wh.load_replace("dim_driver", ("driver_id", "first_seen_at", "trips_total"),
                     [(d, v["first_seen_at"], v["trips_total"])

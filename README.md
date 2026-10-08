@@ -274,8 +274,8 @@ store-blind — one global speed, one flat buffer — and the stores are not.
 
 | store | trips | mean signed error | MAE | p50 | p90 | breach rate |
 |---|---|---|---|---|---|---|
-| FC002 | 11,245 | **+10.24 min** | 11.26 | 7.10 | 25.27 | 82.8% |
-| FC004 | 8,064 | **+4.18 min** | 6.84 | 2.53 | 14.85 | 65.4% |
+| NORTHGATE | 11,245 | **+10.24 min** | 11.26 | 7.10 | 25.27 | 82.8% |
+| RIVERSIDE | 8,064 | **+4.18 min** | 6.84 | 2.53 | 14.85 | 65.4% |
 | *pooled* | 19,309 | *+7.71* | *9.41* | | | |
 
 The pooled figure is the point. One number for both stores reports a formula

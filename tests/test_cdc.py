@@ -38,8 +38,8 @@ def envelope(op, *, driver_id="D-001", lsn=100, ts_ms=1_700_000_000_000,
 # ------------------------------------------------------------- flattening
 
 def test_nested_payload_flattens_to_columns():
-    out = flatten({"id": 1, "addr": {"city": "Goa", "geo": {"lat": 15.4}}})
-    assert out == {"id": 1, "addr_city": "Goa", "addr_geo_lat": 15.4}
+    out = flatten({"id": 1, "addr": {"city": "Mirefield", "geo": {"lat": 15.4}}})
+    assert out == {"id": 1, "addr_city": "Mirefield", "addr_geo_lat": 15.4}
 
 
 def test_flatten_is_depth_bounded():
@@ -218,10 +218,10 @@ def test_row_carries_the_delete_marker_to_the_loader():
 def test_a_composite_key_is_supported():
     keys = ("store_id", "driver_id")
     result = collapse([
-        envelope("c", lsn=10, store_id="FC002"),
-        envelope("c", lsn=11, store_id="FC004"),
+        envelope("c", lsn=10, store_id="NORTHGATE"),
+        envelope("c", lsn=11, store_id="RIVERSIDE"),
     ], keys)
-    assert set(result.states) == {("FC002", "D-001"), ("FC004", "D-001")}
+    assert set(result.states) == {("NORTHGATE", "D-001"), ("RIVERSIDE", "D-001")}
 
 
 # ------------------------------------------------- dimension merge semantics

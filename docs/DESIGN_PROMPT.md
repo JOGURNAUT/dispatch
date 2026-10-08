@@ -32,8 +32,8 @@ The delivery-promise formula uses one global speed for every store. The stores d
 not move at one speed, so the error it leaves behind is more than twice as large
 at one store as the other — **and a single pooled average hides that completely.**
 
-    FC002    +10.01 minutes late on average
-    FC004     +4.74 minutes late on average
+    NORTHGATE    +10.01 minutes late on average
+    RIVERSIDE     +4.74 minutes late on average
     pooled    +7.79   ← reports one problem where there are two
 
 That contrast is the whole page. Everything else is supporting evidence.

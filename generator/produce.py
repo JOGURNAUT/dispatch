@@ -45,13 +45,15 @@ from datetime import datetime, timedelta
 
 TOPIC = "trip_events"
 
+CITY_LAT, CITY_LON = 21.50, 78.25
+
 STORES = [
     # store_id, share of volume, mean km/h -- the speed difference is real: two
     # stores on the same promise formula delivered at measurably different
     # speeds, and a single global constant over-allowed one and under-allowed
     # the other. Keeping them apart here gives the marts something true to find.
-    ("FC002", 0.58, 17.0),
-    ("FC004", 0.42, 25.0),
+    ("NORTHGATE", 0.58, 17.0),
+    ("RIVERSIDE", 0.42, 25.0),
 ]
 DRIVERS = [f"D-{i:04d}" for i in range(1, 61)]
 LIFECYCLE = ("assigned", "reached_pickup", "picked_up", "out_for_delivery",
@@ -138,8 +140,10 @@ def trip_events(trip_no: int, day: datetime, rng: random.Random, args) -> list[d
             "event_type": stage,
             "event_ts": _fmt(ts, v2),
             "driver_id": None if rng.random() < args.null_driver_rate else driver_id,
-            "lat": round(15.49 + rng.uniform(-0.05, 0.05), 6),
-            "lon": round(73.82 + rng.uniform(-0.05, 0.05), 6),
+            # An arbitrary urban centre. The coordinates carry no meaning
+            # here beyond giving each event a plausible, varying position.
+            "lat": round(CITY_LAT + rng.uniform(-0.05, 0.05), 6),
+            "lon": round(CITY_LON + rng.uniform(-0.05, 0.05), 6),
         })
         if rng.random() < getattr(args, "rogue_field_rate", 0.0):
             # Undeclared by every version. The pipeline must keep it, not drop

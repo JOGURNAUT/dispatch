@@ -14,8 +14,8 @@
     --text-secondary: #52514e;
     --text-muted:     #7b7a74;
     --grid:           #e7e5df;
-    --series-FC002:   #2a78d6;
-    --series-FC004:   #eb6834;
+    --series-NORTHGATE:   #2a78d6;
+    --series-RIVERSIDE:   #eb6834;
     --good:           #1a7f4b;
     --bad:            #b4281f;
   }
@@ -29,8 +29,8 @@
       --text-secondary: #c3c2b7;
       --text-muted:     #8f8e85;
       --grid:           #2b2b28;
-      --series-FC002:   #3987e5;
-      --series-FC004:   #d95926;
+      --series-NORTHGATE:   #3987e5;
+      --series-RIVERSIDE:   #d95926;
       --good:           #4ab87a;
       --bad:            #e66767;
     }
@@ -40,8 +40,8 @@
     --surface-0: #121211; --surface-1: #1a1a19; --border: #343430;
     --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8f8e85;
     --grid: #2b2b28;
-    --series-FC002: #3987e5;
-    --series-FC004: #d95926;
+    --series-NORTHGATE: #3987e5;
+    --series-RIVERSIDE: #d95926;
     --good: #4ab87a; --bad: #e66767;
   }
 
@@ -90,8 +90,8 @@
   .legend span.key { display: inline-flex; align-items: center; gap: 6px; }
   .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block;
              flex: 0 0 auto; }
-  .swatch[data-store="FC002"] { background: var(--series-FC002); }
-  .swatch[data-store="FC004"] { background: var(--series-FC004); }
+  .swatch[data-store="NORTHGATE"] { background: var(--series-NORTHGATE); }
+  .swatch[data-store="RIVERSIDE"] { background: var(--series-RIVERSIDE); }
   .swatch.pooled { background: var(--text-muted); }
 
   svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -146,7 +146,7 @@
 <header>
   <h1>Dispatch — what the pipeline found</h1>
   <p class="sub">Delivery promise accuracy, per store, over 14 trading days.</p>
-  <p class="stamp">Generated 2026-10-07 21:36:57 UTC from the warehouse. Every number
+  <p class="stamp">Generated 2026-10-08 20:24:01 UTC from the warehouse. Every number
      on this page is queried at build time — none are typed in.</p>
 </header>
 
@@ -158,13 +158,13 @@
 
   <div class="hero">
     <div class="hero-item">
-      <div class="hero-value" style="color: var(--series-FC002)">+10.01</div>
-      <div class="hero-label"><span class="swatch" data-store="FC002"></span>FC002 min late, on average</div>
+      <div class="hero-value" style="color: var(--series-NORTHGATE)">+10.01</div>
+      <div class="hero-label"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE min late, on average</div>
     </div>
     <div class="hero-sep">vs</div>
     <div class="hero-item">
-      <div class="hero-value" style="color: var(--series-FC004)">+4.74</div>
-      <div class="hero-label"><span class="swatch" data-store="FC004"></span>FC004 min late, on average</div>
+      <div class="hero-value" style="color: var(--series-RIVERSIDE)">+4.74</div>
+      <div class="hero-label"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE min late, on average</div>
     </div>
     <div class="hero-sep">→</div>
     <div class="hero-item">
@@ -174,8 +174,8 @@
   </div>
 
   <div class="legend">
-    <span class="key"><span class="swatch" data-store="FC002"></span>FC002</span>
-    <span class="key"><span class="swatch" data-store="FC004"></span>FC004</span>
+    <span class="key"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</span>
+    <span class="key"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</span>
     <span class="key"><span class="swatch pooled"></span>pooled average</span>
     <span style="color:var(--text-muted)">· signed minutes — positive means the delivery ran later than promised</span>
   </div>
@@ -195,8 +195,8 @@
      completed trips count — a trip still in flight has no duration yet, and
      filling one in from the clock would make every open trip look slow.</p>
   <div class="legend">
-    <span class="key"><span class="swatch" data-store="FC002"></span>FC002</span>
-    <span class="key"><span class="swatch" data-store="FC004"></span>FC004</span>
+    <span class="key"><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</span>
+    <span class="key"><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</span>
   </div>
   <svg id="daily-chart" viewBox="0 0 900 260" role="img"
        aria-label="Daily breach rate per store over the trading period"></svg>
@@ -211,14 +211,14 @@
     <thead><tr><th>Store</th><th class="num">Trips</th><th class="num">Mean signed</th>
       <th class="num">MAE</th><th class="num">p50</th><th class="num">p90</th>
       <th class="num">Breach</th></tr></thead>
-    <tbody><tr><td><span class="swatch" data-store="FC002"></span>FC002</td>
+    <tbody><tr><td><span class="swatch" data-store="NORTHGATE"></span>NORTHGATE</td>
             <td class="num">2,786</td>
             <td class="num strong">+10.01</td>
             <td class="num">11.08</td>
             <td class="num">+6.70</td>
             <td class="num">+24.92</td>
             <td class="num">82.6%</td></tr>
-<tr><td><span class="swatch" data-store="FC004"></span>FC004</td>
+<tr><td><span class="swatch" data-store="RIVERSIDE"></span>RIVERSIDE</td>
             <td class="num">2,023</td>
             <td class="num strong">+4.74</td>
             <td class="num">7.20</td>
@@ -237,10 +237,10 @@
   <p class="lede">What the load actually did. These are the counts the gates were
      checked against.</p>
   <div class="tiles"><div class="tile"><div class="tile-label">Events landed</div>
-            <div class="tile-value">62,610</div>
+            <div class="tile-value">31,305</div>
             <div class="tile-note">14 day partitions</div></div>
 <div class="tile"><div class="tile-label">Collapsed in silver</div>
-            <div class="tile-value">32,773</div>
+            <div class="tile-value">1,468</div>
             <div class="tile-note">redeliveries and corrections</div></div>
 <div class="tile"><div class="tile-label">Trips</div>
             <div class="tile-value">5,000</div>
@@ -280,7 +280,7 @@
 <tr><td class="mono">bronze_to_silver</td><td class="mono">reconciliation</td>
             <td><span class="verdict ok">
             PASS</span></td>
-            <td class="detail">62610 in = 62610 accepted + 0 quarantined</td></tr>
+            <td class="detail">31305 in = 31305 accepted + 0 quarantined</td></tr>
 <tr><td class="mono">silver_to_gold</td><td class="mono">fk:driver_id</td>
             <td><span class="verdict ok">
             PASS</span></td>
@@ -318,7 +318,7 @@
 <div class="tooltip" id="tip" role="status" aria-live="polite"></div>
 
 <script>
-const DATA = {"stores": [{"store_id": "FC002", "trips_measured": 2786, "mean_signed_error_minutes": 10.01, "mean_absolute_error_minutes": 11.08, "p50_error_minutes": 6.7, "p90_error_minutes": 24.92, "mean_tat_minutes": 32.06, "mean_promised_minutes": 22.05, "breach_rate": 0.8263}, {"store_id": "FC004", "trips_measured": 2023, "mean_signed_error_minutes": 4.74, "mean_absolute_error_minutes": 7.2, "p50_error_minutes": 2.97, "p90_error_minutes": 15.88, "mean_tat_minutes": 26.7, "mean_promised_minutes": 21.97, "breach_rate": 0.6757}], "daily": [{"store_id": "FC002", "date_key": "2026-09-01", "trips_total": 201, "trips_measured": 194, "mean_tat_minutes": 31.51, "breach_rate": 0.8299, "measured_share": 0.9652}, {"store_id": "FC004", "date_key": "2026-09-01", "trips_total": 162, "trips_measured": 156, "mean_tat_minutes": 25.15, "breach_rate": 0.6026, "measured_share": 0.963}, {"store_id": "FC002", "date_key": "2026-09-02", "trips_total": 216, "trips_measured": 207, "mean_tat_minutes": 31.85, "breach_rate": 0.8647, "measured_share": 0.9583}, {"store_id": "FC004", "date_key": "2026-09-02", "trips_total": 151, "trips_measured": 147, "mean_tat_minutes": 25.92, "breach_rate": 0.6531, "measured_share": 0.9735}, {"store_id": "FC002", "date_key": "2026-09-03", "trips_total": 237, "trips_measured": 225, "mean_tat_minutes": 31.45, "breach_rate": 0.84, "measured_share": 0.9494}, {"store_id": "FC004", "date_key": "2026-09-03", "trips_total": 134, "trips_measured": 126, "mean_tat_minutes": 26.56, "breach_rate": 0.7222, "measured_share": 0.9403}, {"store_id": "FC002", "date_key": "2026-09-04", "trips_total": 212, "trips_measured": 210, "mean_tat_minutes": 33.11, "breach_rate": 0.8, "measured_share": 0.9906}, {"store_id": "FC004", "date_key": "2026-09-04", "trips_total": 159, "trips_measured": 152, "mean_tat_minutes": 25.91, "breach_rate": 0.6645, "measured_share": 0.956}, {"store_id": "FC002", "date_key": "2026-09-05", "trips_total": 203, "trips_measured": 198, "mean_tat_minutes": 30.74, "breach_rate": 0.8131, "measured_share": 0.9754}, {"store_id": "FC004", "date_key": "2026-09-05", "trips_total": 151, "trips_measured": 147, "mean_tat_minutes": 26.28, "breach_rate": 0.7007, "measured_share": 0.9735}, {"store_id": "FC002", "date_key": "2026-09-06", "trips_total": 216, "trips_measured": 205, "mean_tat_minutes": 32.06, "breach_rate": 0.7854, "measured_share": 0.9491}, {"store_id": "FC004", "date_key": "2026-09-06", "trips_total": 167, "trips_measured": 160, "mean_tat_minutes": 25.95, "breach_rate": 0.65, "measured_share": 0.9581}, {"store_id": "FC002", "date_key": "2026-09-07", "trips_total": 197, "trips_measured": 192, "mean_tat_minutes": 30.89, "breach_rate": 0.8281, "measured_share": 0.9746}, {"store_id": "FC004", "date_key": "2026-09-07", "trips_total": 151, "trips_measured": 145, "mean_tat_minutes": 27.57, "breach_rate": 0.6552, "measured_share": 0.9603}, {"store_id": "FC002", "date_key": "2026-09-08", "trips_total": 203, "trips_measured": 193, "mean_tat_minutes": 33.59, "breach_rate": 0.829, "measured_share": 0.9507}, {"store_id": "FC004", "date_key": "2026-09-08", "trips_total": 162, "trips_measured": 156, "mean_tat_minutes": 27.33, "breach_rate": 0.7628, "measured_share": 0.963}, {"store_id": "FC002", "date_key": "2026-09-09", "trips_total": 217, "trips_measured": 210, "mean_tat_minutes": 31.05, "breach_rate": 0.8286, "measured_share": 0.9677}, {"store_id": "FC004", "date_key": "2026-09-09", "trips_total": 147, "trips_measured": 141, "mean_tat_minutes": 28.16, "breach_rate": 0.7092, "measured_share": 0.9592}, {"store_id": "FC002", "date_key": "2026-09-10", "trips_total": 204, "trips_measured": 193, "mean_tat_minutes": 32.69, "breach_rate": 0.8705, "measured_share": 0.9461}, {"store_id": "FC004", "date_key": "2026-09-10", "trips_total": 139, "trips_measured": 131, "mean_tat_minutes": 27.53, "breach_rate": 0.6641, "measured_share": 0.9424}, {"store_id": "FC002", "date_key": "2026-09-11", "trips_total": 216, "trips_measured": 209, "mean_tat_minutes": 30.2, "breach_rate": 0.7608, "measured_share": 0.9676}, {"store_id": "FC004", "date_key": "2026-09-11", "trips_total": 150, "trips_measured": 147, "mean_tat_minutes": 27.9, "breach_rate": 0.6939, "measured_share": 0.98}, {"store_id": "FC002", "date_key": "2026-09-12", "trips_total": 196, "trips_measured": 189, "mean_tat_minutes": 33.03, "breach_rate": 0.836, "measured_share": 0.9643}, {"store_id": "FC004", "date_key": "2026-09-12", "trips_total": 137, "trips_measured": 134, "mean_tat_minutes": 26.76, "breach_rate": 0.6343, "measured_share": 0.9781}, {"store_id": "FC002", "date_key": "2026-09-13", "trips_total": 187, "trips_measured": 176, "mean_tat_minutes": 34.53, "breach_rate": 0.875, "measured_share": 0.9412}, {"store_id": "FC004", "date_key": "2026-09-13", "trips_total": 150, "trips_measured": 144, "mean_tat_minutes": 26.39, "breach_rate": 0.6389, "measured_share": 0.96}, {"store_id": "FC002", "date_key": "2026-09-14", "trips_total": 197, "trips_measured": 185, "mean_tat_minutes": 32.73, "breach_rate": 0.8162, "measured_share": 0.9391}, {"store_id": "FC004", "date_key": "2026-09-14", "trips_total": 138, "trips_measured": 137, "mean_tat_minutes": 26.72, "breach_rate": 0.7153, "measured_share": 0.9928}], "pooled": {"trips_measured": 4809, "mean_signed_error_minutes": 7.79, "mean_absolute_error_minutes": 9.44}, "series": {"FC002": {"light": "#2a78d6", "dark": "#3987e5"}, "FC004": {"light": "#eb6834", "dark": "#d95926"}}};
+const DATA = {"stores": [{"store_id": "NORTHGATE", "trips_measured": 2786, "mean_signed_error_minutes": 10.01, "mean_absolute_error_minutes": 11.08, "p50_error_minutes": 6.7, "p90_error_minutes": 24.92, "mean_tat_minutes": 32.06, "mean_promised_minutes": 22.05, "breach_rate": 0.8263}, {"store_id": "RIVERSIDE", "trips_measured": 2023, "mean_signed_error_minutes": 4.74, "mean_absolute_error_minutes": 7.2, "p50_error_minutes": 2.97, "p90_error_minutes": 15.88, "mean_tat_minutes": 26.7, "mean_promised_minutes": 21.97, "breach_rate": 0.6757}], "daily": [{"store_id": "NORTHGATE", "date_key": "2026-09-01", "trips_total": 201, "trips_measured": 194, "mean_tat_minutes": 31.51, "breach_rate": 0.8299, "measured_share": 0.9652}, {"store_id": "RIVERSIDE", "date_key": "2026-09-01", "trips_total": 162, "trips_measured": 156, "mean_tat_minutes": 25.15, "breach_rate": 0.6026, "measured_share": 0.963}, {"store_id": "NORTHGATE", "date_key": "2026-09-02", "trips_total": 216, "trips_measured": 207, "mean_tat_minutes": 31.85, "breach_rate": 0.8647, "measured_share": 0.9583}, {"store_id": "RIVERSIDE", "date_key": "2026-09-02", "trips_total": 151, "trips_measured": 147, "mean_tat_minutes": 25.92, "breach_rate": 0.6531, "measured_share": 0.9735}, {"store_id": "NORTHGATE", "date_key": "2026-09-03", "trips_total": 237, "trips_measured": 225, "mean_tat_minutes": 31.45, "breach_rate": 0.84, "measured_share": 0.9494}, {"store_id": "RIVERSIDE", "date_key": "2026-09-03", "trips_total": 134, "trips_measured": 126, "mean_tat_minutes": 26.56, "breach_rate": 0.7222, "measured_share": 0.9403}, {"store_id": "NORTHGATE", "date_key": "2026-09-04", "trips_total": 212, "trips_measured": 210, "mean_tat_minutes": 33.11, "breach_rate": 0.8, "measured_share": 0.9906}, {"store_id": "RIVERSIDE", "date_key": "2026-09-04", "trips_total": 159, "trips_measured": 152, "mean_tat_minutes": 25.91, "breach_rate": 0.6645, "measured_share": 0.956}, {"store_id": "NORTHGATE", "date_key": "2026-09-05", "trips_total": 203, "trips_measured": 198, "mean_tat_minutes": 30.74, "breach_rate": 0.8131, "measured_share": 0.9754}, {"store_id": "RIVERSIDE", "date_key": "2026-09-05", "trips_total": 151, "trips_measured": 147, "mean_tat_minutes": 26.28, "breach_rate": 0.7007, "measured_share": 0.9735}, {"store_id": "NORTHGATE", "date_key": "2026-09-06", "trips_total": 216, "trips_measured": 205, "mean_tat_minutes": 32.06, "breach_rate": 0.7854, "measured_share": 0.9491}, {"store_id": "RIVERSIDE", "date_key": "2026-09-06", "trips_total": 167, "trips_measured": 160, "mean_tat_minutes": 25.95, "breach_rate": 0.65, "measured_share": 0.9581}, {"store_id": "NORTHGATE", "date_key": "2026-09-07", "trips_total": 197, "trips_measured": 192, "mean_tat_minutes": 30.89, "breach_rate": 0.8281, "measured_share": 0.9746}, {"store_id": "RIVERSIDE", "date_key": "2026-09-07", "trips_total": 151, "trips_measured": 145, "mean_tat_minutes": 27.57, "breach_rate": 0.6552, "measured_share": 0.9603}, {"store_id": "NORTHGATE", "date_key": "2026-09-08", "trips_total": 203, "trips_measured": 193, "mean_tat_minutes": 33.59, "breach_rate": 0.829, "measured_share": 0.9507}, {"store_id": "RIVERSIDE", "date_key": "2026-09-08", "trips_total": 162, "trips_measured": 156, "mean_tat_minutes": 27.33, "breach_rate": 0.7628, "measured_share": 0.963}, {"store_id": "NORTHGATE", "date_key": "2026-09-09", "trips_total": 217, "trips_measured": 210, "mean_tat_minutes": 31.05, "breach_rate": 0.8286, "measured_share": 0.9677}, {"store_id": "RIVERSIDE", "date_key": "2026-09-09", "trips_total": 147, "trips_measured": 141, "mean_tat_minutes": 28.16, "breach_rate": 0.7092, "measured_share": 0.9592}, {"store_id": "NORTHGATE", "date_key": "2026-09-10", "trips_total": 204, "trips_measured": 193, "mean_tat_minutes": 32.69, "breach_rate": 0.8705, "measured_share": 0.9461}, {"store_id": "RIVERSIDE", "date_key": "2026-09-10", "trips_total": 139, "trips_measured": 131, "mean_tat_minutes": 27.53, "breach_rate": 0.6641, "measured_share": 0.9424}, {"store_id": "NORTHGATE", "date_key": "2026-09-11", "trips_total": 216, "trips_measured": 209, "mean_tat_minutes": 30.2, "breach_rate": 0.7608, "measured_share": 0.9676}, {"store_id": "RIVERSIDE", "date_key": "2026-09-11", "trips_total": 150, "trips_measured": 147, "mean_tat_minutes": 27.9, "breach_rate": 0.6939, "measured_share": 0.98}, {"store_id": "NORTHGATE", "date_key": "2026-09-12", "trips_total": 196, "trips_measured": 189, "mean_tat_minutes": 33.03, "breach_rate": 0.836, "measured_share": 0.9643}, {"store_id": "RIVERSIDE", "date_key": "2026-09-12", "trips_total": 137, "trips_measured": 134, "mean_tat_minutes": 26.76, "breach_rate": 0.6343, "measured_share": 0.9781}, {"store_id": "NORTHGATE", "date_key": "2026-09-13", "trips_total": 187, "trips_measured": 176, "mean_tat_minutes": 34.53, "breach_rate": 0.875, "measured_share": 0.9412}, {"store_id": "RIVERSIDE", "date_key": "2026-09-13", "trips_total": 150, "trips_measured": 144, "mean_tat_minutes": 26.39, "breach_rate": 0.6389, "measured_share": 0.96}, {"store_id": "NORTHGATE", "date_key": "2026-09-14", "trips_total": 197, "trips_measured": 185, "mean_tat_minutes": 32.73, "breach_rate": 0.8162, "measured_share": 0.9391}, {"store_id": "RIVERSIDE", "date_key": "2026-09-14", "trips_total": 138, "trips_measured": 137, "mean_tat_minutes": 26.72, "breach_rate": 0.7153, "measured_share": 0.9928}], "pooled": {"trips_measured": 4809, "mean_signed_error_minutes": 7.79, "mean_absolute_error_minutes": 9.44}, "series": {"NORTHGATE": {"light": "#2a78d6", "dark": "#3987e5"}, "RIVERSIDE": {"light": "#eb6834", "dark": "#d95926"}}};
 const tip = document.getElementById("tip");
 
 function showTip(html, evt) {

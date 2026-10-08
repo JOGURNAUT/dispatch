@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import sys
 import uuid
@@ -42,11 +43,15 @@ from dispatch.quality import (
     check_volume_band,
 )
 from dispatch.sessionize import DEFAULT_LAG_WINDOW, sessionize
+from dispatch.storage import open_store
 
 from .warehouse import FCT_TRIP_COLUMNS, Warehouse, fact_row
 
-BRONZE = pathlib.Path("data/bronze")
-SILVER = pathlib.Path("data/silver")
+# URIs, not paths: "data/bronze" is a directory and "gs://bucket/bronze" is a
+# bucket, and nothing below this line knows which it got. Env-overridable so a
+# scheduled run points at a bucket without a code change.
+BRONZE = os.environ.get("DISPATCH_BRONZE", "data/bronze")
+SILVER = os.environ.get("DISPATCH_SILVER", "data/silver")
 MAX_SOURCE_LAG = timedelta(days=3)
 
 
@@ -110,14 +115,17 @@ def ingest_bronze(source: str, batch_id: str) -> dict:
         day = str(event.get("event_ts", ""))[:10] or "unknown"
         partitions.setdefault(day, []).append(event)
 
-    BRONZE.mkdir(parents=True, exist_ok=True)
+    # One object per batch per partition, never an append. Object storage has no
+    # append at all, and writing a whole object is the safer shape on a
+    # filesystem too: a crash leaves an identifiable partial file rather than
+    # half a line glued onto good data.
+    #
+    # Bronze still accumulates -- a second delivery of the same event is a fact
+    # about the stream and belongs in the record. Silver is where identity is
+    # decided.
+    store = open_store(BRONZE)
     for day, events in partitions.items():
-        # Append, not replace. Bronze is immutable: a second delivery of the same
-        # event is a fact about the stream and belongs in the record. Silver is
-        # where identity is decided.
-        with (BRONZE / f"dt={day}.jsonl").open("a", encoding="utf-8") as handle:
-            for event in events:
-                handle.write(json.dumps(event) + "\n")
+        store.write_batch(day, events, batch_id)
 
     return {"batch_id": batch_id, "received": received,
             "partitions": sorted(partitions), "written": received}
@@ -139,8 +147,8 @@ def build_silver(batch_id: str, partitions: list[str] | None = None,
     # wall clock. Reading the clock here makes every backfill fail for the only
     # reason a backfill exists -- that its data is older than today.
     as_of = as_of or _now()
-    SILVER.mkdir(parents=True, exist_ok=True)
-    days = partitions or sorted(p.stem.split("=")[1] for p in BRONZE.glob("dt=*.jsonl"))
+    bronze, silver = open_store(BRONZE), open_store(SILVER)
+    days = partitions or bronze.partitions()
 
     report = GateReport("bronze_to_silver")
     totals = {"read": 0, "accepted": 0, "quarantined": 0,
@@ -149,11 +157,9 @@ def build_silver(batch_id: str, partitions: list[str] | None = None,
     newest: datetime | None = None
 
     for day in days:
-        path = BRONZE / f"dt={day}.jsonl"
-        if not path.exists():
+        raw_events = bronze.read_partition(day)
+        if not raw_events:
             continue
-        raw_events = [json.loads(line) for line in
-                      path.read_text(encoding="utf-8").splitlines() if line.strip()]
         totals["read"] += len(raw_events)
 
         normalised = []
@@ -179,12 +185,15 @@ def build_silver(batch_id: str, partitions: list[str] | None = None,
             day_newest = max(e.event_ts for e in result.rows)
             newest = day_newest if newest is None else max(newest, day_newest)
 
-        with (SILVER / f"dt={day}.jsonl").open("w", encoding="utf-8") as handle:
-            for event in result.rows:
-                row = event.as_row()
-                row["event_ts"] = row["event_ts"].isoformat()
-                row["ingested_at"] = row["ingested_at"].isoformat()
-                handle.write(json.dumps(row) + "\n")
+        # Replaced, not accumulated: silver is derived, so recomputing a
+        # partition has to produce that partition rather than add to it.
+        rows = []
+        for event in result.rows:
+            row = event.as_row()
+            row["event_ts"] = row["event_ts"].isoformat()
+            row["ingested_at"] = row["ingested_at"].isoformat()
+            rows.append(row)
+        silver.replace_partition(day, rows)
 
     totals["quarantined"] = len(quarantined_rows)
     if quarantined_rows:
@@ -215,14 +224,9 @@ def build_silver(batch_id: str, partitions: list[str] | None = None,
 def _read_silver(days: list[str]):
     from dispatch.contracts import NormalisedEvent
     events = []
+    silver = open_store(SILVER)
     for day in days:
-        path = SILVER / f"dt={day}.jsonl"
-        if not path.exists():
-            continue
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            row = json.loads(line)
+        for row in silver.read_partition(day):
             row["event_ts"] = datetime.fromisoformat(row["event_ts"])
             row["ingested_at"] = datetime.fromisoformat(row["ingested_at"])
             # `extra` is written as a JSON string so a silver record stays one
@@ -247,7 +251,7 @@ def build_gold(batch_id: str, partitions: list[str] | None = None,
     wh = warehouse or Warehouse()
     wh.migrate()
     as_of = as_of or _now()
-    days = partitions or sorted(p.stem.split("=")[1] for p in SILVER.glob("dt=*.jsonl"))
+    days = partitions or open_store(SILVER).partitions()
 
     events = _read_silver(days)
     if not events:

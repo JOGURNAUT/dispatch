@@ -60,7 +60,7 @@ gold     trips 20000  {'complete': 19905, 'broken': 95}
 ```
 
 ```bash
-make test     # 94 tests, no cluster needed
+make test     # 120 tests, no cluster needed
 make prove    # show the logic runs with no engine installed
 make report   # write docs/results.html from the warehouse
 make up       # Kafka, Spark, Postgres and Airflow in Docker
@@ -190,6 +190,34 @@ In the 20,000-trip run: **18,107** v1.1.0 records keep `vehicle_type` and
 `battery_pct`, and **2,403** keep `weather_code`, which no schema version
 declares at all.
 
+### Object storage is not a filesystem
+
+The lake is addressed by URI: `data/bronze` is a directory and
+`gs://bucket/bronze` is a GCS bucket, and nothing above the storage layer knows
+which it got. That is not a config switch, because the two differ where it
+matters:
+
+- **No append.** A GCS object is written whole or replaced whole. Bronze used to
+  open a day's file in `"a"` mode, which has no equivalent.
+- **No rename.** What looks like one is a copy then a delete, so the usual
+  write-to-temp-then-rename trick buys no atomicity.
+- **Listing is a query.** Objects are a flat namespace; a "directory" is a
+  prefix convention and listing one is a paged network call.
+
+So appending became *one object per batch per partition* —
+`dt=2026-09-01/batch-<run-id>.jsonl` — and **both** backends do it that way,
+including the local one. If local appended to a single file and GCS wrote many
+objects, the tests would exercise the easy backend and the first real bucket run
+would be the first check of the hard one.
+
+It is the better shape on a filesystem too: a crash leaves an identifiable
+partial object rather than half a line glued onto good data. And a retried batch
+writes the same key, so it overwrites instead of doubling the partition.
+
+```bash
+DISPATCH_BRONZE=gs://my-lake/bronze DISPATCH_SILVER=gs://my-lake/silver run demo
+```
+
 ### A change stream is not an event stream
 
 Trip events are things that happened and are never amended. A driver row in the
@@ -298,6 +326,7 @@ dispatch/            pure-Python transformation logic — no engine imports
   contracts.py         schema boundary, timestamp normalisation
   schema_registry.py   versioned schemas, compatibility checking, extras
   cdc.py               Debezium envelopes, tombstones, LSN ordering
+  storage.py           the lake, local directory or GCS bucket
   dedupe.py            idempotent replay, natural keys, correcting re-publishes
   sessionize.py        events → trip facts, completeness, late arrival
   quality.py           the nine gates
@@ -307,7 +336,7 @@ streaming/ingest.py    Spark Structured Streaming: Kafka → bronze Parquet
 transforms/            batch runner and the warehouse loader
 dags/dispatch_dag.py   Airflow: one task per layer, gated before each load
 dbt/                   staging + two marts, 3 singular tests, 11 schema tests
-tests/                 94 tests
+tests/                 120 tests
 ```
 
 ## The generator is adversarial on purpose

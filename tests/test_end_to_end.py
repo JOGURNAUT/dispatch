@@ -20,6 +20,7 @@ from datetime import datetime
 import pytest
 
 from dispatch.quality import QualityGateFailed
+from dispatch.storage import open_store
 from generator.produce import generate
 from transforms import run_pipeline
 from transforms.warehouse import Warehouse
@@ -98,9 +99,9 @@ def test_replay_does_not_change_the_warehouse(workspace):
     assert first == second, "a replay changed the warehouse"
     # Bronze really did grow -- otherwise this passes because nothing was
     # re-ingested, which proves nothing about the dedupe.
-    bronze_lines = sum(len(p.read_text().splitlines())
-                       for p in (workspace / "bronze").glob("dt=*.jsonl"))
-    assert bronze_lines > first[0], "bronze did not accumulate, replay was not exercised"
+    bronze = open_store(workspace / "bronze")
+    bronze_rows = sum(len(bronze.read_partition(day)) for day in bronze.partitions())
+    assert bronze_rows > first[0], "bronze did not accumulate, replay was not exercised"
 
 
 def test_backfill_reproduces_the_original_run(workspace):
@@ -240,12 +241,12 @@ def test_an_undeclared_field_reaches_silver_instead_of_vanishing(workspace):
     source = write_source(workspace / "raw.jsonl", events)
     run_pipeline.run_all(str(source), as_of=AS_OF)
 
+    silver = open_store(workspace / "silver")
     preserved = set()
-    for path in (workspace / "silver").glob("dt=*.jsonl"):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            extra = json.loads(line).get("extra")
-            if extra:
-                preserved.update(json.loads(extra))
+    for day in silver.partitions():
+        for row in silver.read_partition(day):
+            if row.get("extra"):
+                preserved.update(json.loads(row["extra"]))
 
     # vehicle_type is declared by 1.1.0 but is not a promoted column;
     # weather_code is declared by no version at all. Both must survive.
@@ -260,10 +261,9 @@ def test_mixed_schema_versions_coexist_in_one_batch(workspace):
     source = write_source(workspace / "raw.jsonl", events)
     result = run_pipeline.run_all(str(source), as_of=AS_OF)
 
-    versions = set()
-    for path in (workspace / "silver").glob("dt=*.jsonl"):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            versions.add(json.loads(line)["schema_version"])
+    silver = open_store(workspace / "silver")
+    versions = {row["schema_version"] for day in silver.partitions()
+                for row in silver.read_partition(day)}
 
     assert versions == {"1.0.0", "1.1.0"}
     assert result["gold"]["trips"] == 300

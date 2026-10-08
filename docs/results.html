@@ -238,9 +238,9 @@ td.detail { color: var(--ink-2); min-width: 260px; }
   <header class="top">
     <div>
       <p class="eyebrow">Dispatch · delivery-promise error</p>
-      <h1>One global speed leaves NORTHGATE 2.1× as late as RIVERSIDE, and the pooled average hides it.</h1>
+      <h1>One global speed leaves NORTHGATE 2.3× as late as RIVERSIDE, and the pooled average hides it.</h1>
     </div>
-    <p class="stamp">generated 2026-10-08 20:44 UTC<br>from the warehouse</p>
+    <p class="stamp">generated 2026-10-08 21:01 UTC<br>from the warehouse</p>
   </header>
 
   <main>
@@ -254,23 +254,23 @@ td.detail { color: var(--ink-2); min-width: 260px; }
       <div class="figs">
         <div class="fig">
           <div class="who"><span class="sw a"></span>NORTHGATE</div>
-          <div class="big">+10.01</div>
+          <div class="big">+10.23</div>
           <div class="unit">min late on average</div>
         </div>
         <div class="fig">
           <div class="who"><span class="sw b"></span>RIVERSIDE</div>
-          <div class="big">+4.74</div>
+          <div class="big">+4.37</div>
           <div class="unit">min late on average</div>
         </div>
         <div class="fig pooled">
           <div class="who">Pooled</div>
-          <div class="big">+7.79</div>
+          <div class="big">+7.78</div>
           <div class="unit">matches neither store</div>
         </div>
       </div>
 
       <!-- Number line: positions are % of the axis width (0 = left, 100 = right). -->
-      <div class="nl" role="img" aria-label="Number line of mean error: NORTHGATE +10.01 min, RIVERSIDE +4.74 min, pooled +7.79 min, 5.27 min apart.">
+      <div class="nl" role="img" aria-label="Number line of mean error: NORTHGATE +10.23 min, RIVERSIDE +4.37 min, pooled +7.78 min, 5.86 min apart.">
         <span class="axis-title">minutes late →</span>
         <div class="track"></div>
         <div class="tick" style="left: 0.0%;"><span>0</span></div>
@@ -280,10 +280,10 @@ td.detail { color: var(--ink-2); min-width: 260px; }
         <div class="tick" style="left: 66.67%;"><span>8</span></div>
         <div class="tick" style="left: 83.33%;"><span>10</span></div>
         <div class="tick" style="left: 100.0%;"><span>12</span></div>
-        <div class="gap" style="left: 39.5%; width: 43.92%;"><span>5.27 min apart</span></div>
-        <div class="pool" style="left: 64.92%;"><span>pooled +7.79</span></div>
-        <div class="dot b" style="left: 39.5%;" title="RIVERSIDE +4.74 min"></div>
-        <div class="dot a" style="left: 83.42%;" title="NORTHGATE +10.01 min"></div>
+        <div class="gap" style="left: 36.42%; width: 48.83%;"><span>5.86 min apart</span></div>
+        <div class="pool" style="left: 64.83%;"><span>pooled +7.78</span></div>
+        <div class="dot b" style="left: 36.42%;" title="RIVERSIDE +4.37 min"></div>
+        <div class="dot a" style="left: 85.25%;" title="NORTHGATE +10.23 min"></div>
       </div>
 
       <p class="caveat"><strong>Synthetic data.</strong> The events come from a seeded generator, and defects are injected on purpose. The gap measures the store speeds written into that generator, not a real fleet. What this shows is that the pipeline finds a per-store difference that a single pooled figure would report as one problem.</p>
@@ -292,7 +292,7 @@ td.detail { color: var(--ink-2); min-width: 260px; }
     <!-- SUPPORTING EVIDENCE -->
     <div class="panel">
       <h2>Breach rate by day</h2>
-      <p class="sub">NORTHGATE breached more often than RIVERSIDE on 14 of 14 days, so the gap holds from day to day.</p>
+      <p class="sub">NORTHGATE breached more often than RIVERSIDE on 21 of 21 days, so the gap holds from day to day.</p>
 
       <div class="chart">
         <div class="plot">
@@ -301,29 +301,36 @@ td.detail { color: var(--ink-2); min-width: 260px; }
           <div class="gl base" style="top: 100%;"><span>0%</span></div>
           <!-- viewBox is 1000 × 100; point i sits at x = (i + 0.5) / n_days * 1000. -->
           <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
-            <polyline class="ln b" points="35.7,39.74 107.1,34.69 178.6,27.78 250.0,33.55 321.4,29.93 392.9,35.0 464.3,34.48 535.7,23.72 607.1,29.08 678.6,33.59 750.0,30.61 821.4,36.57 892.9,36.11 964.3,28.47"></polyline>
-            <polyline class="ln a" points="35.7,17.01 107.1,13.53 178.6,16.0 250.0,20.0 321.4,18.69 392.9,21.46 464.3,17.19 535.7,17.1 607.1,17.14 678.6,12.95 750.0,23.92 821.4,16.4 892.9,12.5 964.3,18.38"></polyline>
+            <polyline class="ln b" points="23.8,32.87 71.4,31.22 119.0,34.51 166.7,34.9 214.3,35.77 261.9,33.15 309.5,34.36 357.1,33.42 404.8,31.46 452.4,36.63 500.0,35.11 547.6,37.0 595.2,37.88 642.9,38.42 690.5,33.06 738.1,30.4 785.7,35.92 833.3,37.33 881.0,36.22 928.6,33.74 976.2,31.55"></polyline>
+            <polyline class="ln a" points="23.8,19.08 71.4,17.9 119.0,17.92 166.7,17.1 214.3,18.92 261.9,16.96 309.5,15.37 357.1,16.2 404.8,19.21 452.4,20.0 500.0,17.68 547.6,20.57 595.2,19.29 642.9,15.24 690.5,19.02 738.1,16.09 785.7,16.76 833.3,20.48 881.0,16.88 928.6,16.57 976.2,19.2"></polyline>
           </svg>
-          <span class="end" style="top: 11.42%;">NORTHGATE<small>81.6%</small></span>
-          <span class="end" style="top: 35.42%;">RIVERSIDE<small>71.5%</small></span>
+          <span class="end" style="top: 13.38%;">NORTHGATE<small>80.8%</small></span>
+          <span class="end" style="top: 37.38%;">RIVERSIDE<small>68.5%</small></span>
           <div class="cols">
-            <div class="col" tabindex="0" aria-label="Sep 01: NORTHGATE 83.0%, RIVERSIDE 60.3%"><span class="xh"></span><span class="pt b" style="bottom: 60.26%;"></span><span class="pt a" style="bottom: 82.99%;"></span><div class="tip"><b>Sep 01</b><i class="a"></i>NORTHGATE 83.0%<br><i class="b"></i>RIVERSIDE 60.3%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 02: NORTHGATE 86.5%, RIVERSIDE 65.3%"><span class="xh"></span><span class="pt b" style="bottom: 65.31%;"></span><span class="pt a" style="bottom: 86.47%;"></span><div class="tip"><b>Sep 02</b><i class="a"></i>NORTHGATE 86.5%<br><i class="b"></i>RIVERSIDE 65.3%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 03: NORTHGATE 84.0%, RIVERSIDE 72.2%"><span class="xh"></span><span class="pt b" style="bottom: 72.22%;"></span><span class="pt a" style="bottom: 84.0%;"></span><div class="tip"><b>Sep 03</b><i class="a"></i>NORTHGATE 84.0%<br><i class="b"></i>RIVERSIDE 72.2%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 04: NORTHGATE 80.0%, RIVERSIDE 66.5%"><span class="xh"></span><span class="pt b" style="bottom: 66.45%;"></span><span class="pt a" style="bottom: 80.0%;"></span><div class="tip"><b>Sep 04</b><i class="a"></i>NORTHGATE 80.0%<br><i class="b"></i>RIVERSIDE 66.5%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 05: NORTHGATE 81.3%, RIVERSIDE 70.1%"><span class="xh"></span><span class="pt b" style="bottom: 70.07%;"></span><span class="pt a" style="bottom: 81.31%;"></span><div class="tip"><b>Sep 05</b><i class="a"></i>NORTHGATE 81.3%<br><i class="b"></i>RIVERSIDE 70.1%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 06: NORTHGATE 78.5%, RIVERSIDE 65.0%"><span class="xh"></span><span class="pt b" style="bottom: 65.0%;"></span><span class="pt a" style="bottom: 78.54%;"></span><div class="tip"><b>Sep 06</b><i class="a"></i>NORTHGATE 78.5%<br><i class="b"></i>RIVERSIDE 65.0%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 07: NORTHGATE 82.8%, RIVERSIDE 65.5%"><span class="xh"></span><span class="pt b" style="bottom: 65.52%;"></span><span class="pt a" style="bottom: 82.81%;"></span><div class="tip"><b>Sep 07</b><i class="a"></i>NORTHGATE 82.8%<br><i class="b"></i>RIVERSIDE 65.5%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 08: NORTHGATE 82.9%, RIVERSIDE 76.3%"><span class="xh"></span><span class="pt b" style="bottom: 76.28%;"></span><span class="pt a" style="bottom: 82.9%;"></span><div class="tip"><b>Sep 08</b><i class="a"></i>NORTHGATE 82.9%<br><i class="b"></i>RIVERSIDE 76.3%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 09: NORTHGATE 82.9%, RIVERSIDE 70.9%"><span class="xh"></span><span class="pt b" style="bottom: 70.92%;"></span><span class="pt a" style="bottom: 82.86%;"></span><div class="tip"><b>Sep 09</b><i class="a"></i>NORTHGATE 82.9%<br><i class="b"></i>RIVERSIDE 70.9%</div></div>
-            <div class="col" tabindex="0" aria-label="Sep 10: NORTHGATE 87.1%, RIVERSIDE 66.4%"><span class="xh"></span><span class="pt b" style="bottom: 66.41%;"></span><span class="pt a" style="bottom: 87.05%;"></span><div class="tip"><b>Sep 10</b><i class="a"></i>NORTHGATE 87.1%<br><i class="b"></i>RIVERSIDE 66.4%</div></div>
-            <div class="col flip" tabindex="0" aria-label="Sep 11: NORTHGATE 76.1%, RIVERSIDE 69.4%"><span class="xh"></span><span class="pt b" style="bottom: 69.39%;"></span><span class="pt a" style="bottom: 76.08%;"></span><div class="tip"><b>Sep 11</b><i class="a"></i>NORTHGATE 76.1%<br><i class="b"></i>RIVERSIDE 69.4%</div></div>
-            <div class="col flip" tabindex="0" aria-label="Sep 12: NORTHGATE 83.6%, RIVERSIDE 63.4%"><span class="xh"></span><span class="pt b" style="bottom: 63.43%;"></span><span class="pt a" style="bottom: 83.6%;"></span><div class="tip"><b>Sep 12</b><i class="a"></i>NORTHGATE 83.6%<br><i class="b"></i>RIVERSIDE 63.4%</div></div>
-            <div class="col flip" tabindex="0" aria-label="Sep 13: NORTHGATE 87.5%, RIVERSIDE 63.9%"><span class="xh"></span><span class="pt b" style="bottom: 63.89%;"></span><span class="pt a" style="bottom: 87.5%;"></span><div class="tip"><b>Sep 13</b><i class="a"></i>NORTHGATE 87.5%<br><i class="b"></i>RIVERSIDE 63.9%</div></div>
-            <div class="col flip" tabindex="0" aria-label="Sep 14: NORTHGATE 81.6%, RIVERSIDE 71.5%"><span class="xh"></span><span class="pt b" style="bottom: 71.53%;"></span><span class="pt a" style="bottom: 81.62%;"></span><div class="tip"><b>Sep 14</b><i class="a"></i>NORTHGATE 81.6%<br><i class="b"></i>RIVERSIDE 71.5%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 01: NORTHGATE 80.9%, RIVERSIDE 67.1%"><span class="xh"></span><span class="pt b" style="bottom: 67.13%;"></span><span class="pt a" style="bottom: 80.92%;"></span><div class="tip"><b>Sep 01</b><i class="a"></i>NORTHGATE 80.9%<br><i class="b"></i>RIVERSIDE 67.1%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 02: NORTHGATE 82.1%, RIVERSIDE 68.8%"><span class="xh"></span><span class="pt b" style="bottom: 68.78%;"></span><span class="pt a" style="bottom: 82.1%;"></span><div class="tip"><b>Sep 02</b><i class="a"></i>NORTHGATE 82.1%<br><i class="b"></i>RIVERSIDE 68.8%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 03: NORTHGATE 82.1%, RIVERSIDE 65.5%"><span class="xh"></span><span class="pt b" style="bottom: 65.49%;"></span><span class="pt a" style="bottom: 82.08%;"></span><div class="tip"><b>Sep 03</b><i class="a"></i>NORTHGATE 82.1%<br><i class="b"></i>RIVERSIDE 65.5%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 04: NORTHGATE 82.9%, RIVERSIDE 65.1%"><span class="xh"></span><span class="pt b" style="bottom: 65.1%;"></span><span class="pt a" style="bottom: 82.9%;"></span><div class="tip"><b>Sep 04</b><i class="a"></i>NORTHGATE 82.9%<br><i class="b"></i>RIVERSIDE 65.1%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 05: NORTHGATE 81.1%, RIVERSIDE 64.2%"><span class="xh"></span><span class="pt b" style="bottom: 64.23%;"></span><span class="pt a" style="bottom: 81.08%;"></span><div class="tip"><b>Sep 05</b><i class="a"></i>NORTHGATE 81.1%<br><i class="b"></i>RIVERSIDE 64.2%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 06: NORTHGATE 83.0%, RIVERSIDE 66.8%"><span class="xh"></span><span class="pt b" style="bottom: 66.85%;"></span><span class="pt a" style="bottom: 83.04%;"></span><div class="tip"><b>Sep 06</b><i class="a"></i>NORTHGATE 83.0%<br><i class="b"></i>RIVERSIDE 66.8%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 07: NORTHGATE 84.6%, RIVERSIDE 65.6%"><span class="xh"></span><span class="pt b" style="bottom: 65.64%;"></span><span class="pt a" style="bottom: 84.63%;"></span><div class="tip"><b>Sep 07</b><i class="a"></i>NORTHGATE 84.6%<br><i class="b"></i>RIVERSIDE 65.6%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 08: NORTHGATE 83.8%, RIVERSIDE 66.6%"><span class="xh"></span><span class="pt b" style="bottom: 66.58%;"></span><span class="pt a" style="bottom: 83.8%;"></span><div class="tip"><b>Sep 08</b><i class="a"></i>NORTHGATE 83.8%<br><i class="b"></i>RIVERSIDE 66.6%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 09: NORTHGATE 80.8%, RIVERSIDE 68.5%"><span class="xh"></span><span class="pt b" style="bottom: 68.54%;"></span><span class="pt a" style="bottom: 80.79%;"></span><div class="tip"><b>Sep 09</b><i class="a"></i>NORTHGATE 80.8%<br><i class="b"></i>RIVERSIDE 68.5%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 10: NORTHGATE 80.0%, RIVERSIDE 63.4%"><span class="xh"></span><span class="pt b" style="bottom: 63.37%;"></span><span class="pt a" style="bottom: 80.0%;"></span><div class="tip"><b>Sep 10</b><i class="a"></i>NORTHGATE 80.0%<br><i class="b"></i>RIVERSIDE 63.4%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 11: NORTHGATE 82.3%, RIVERSIDE 64.9%"><span class="xh"></span><span class="pt b" style="bottom: 64.89%;"></span><span class="pt a" style="bottom: 82.32%;"></span><div class="tip"><b>Sep 11</b><i class="a"></i>NORTHGATE 82.3%<br><i class="b"></i>RIVERSIDE 64.9%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 12: NORTHGATE 79.4%, RIVERSIDE 63.0%"><span class="xh"></span><span class="pt b" style="bottom: 63.0%;"></span><span class="pt a" style="bottom: 79.43%;"></span><div class="tip"><b>Sep 12</b><i class="a"></i>NORTHGATE 79.4%<br><i class="b"></i>RIVERSIDE 63.0%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 13: NORTHGATE 80.7%, RIVERSIDE 62.1%"><span class="xh"></span><span class="pt b" style="bottom: 62.12%;"></span><span class="pt a" style="bottom: 80.71%;"></span><div class="tip"><b>Sep 13</b><i class="a"></i>NORTHGATE 80.7%<br><i class="b"></i>RIVERSIDE 62.1%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 14: NORTHGATE 84.8%, RIVERSIDE 61.6%"><span class="xh"></span><span class="pt b" style="bottom: 61.58%;"></span><span class="pt a" style="bottom: 84.76%;"></span><div class="tip"><b>Sep 14</b><i class="a"></i>NORTHGATE 84.8%<br><i class="b"></i>RIVERSIDE 61.6%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 15: NORTHGATE 81.0%, RIVERSIDE 66.9%"><span class="xh"></span><span class="pt b" style="bottom: 66.94%;"></span><span class="pt a" style="bottom: 80.98%;"></span><div class="tip"><b>Sep 15</b><i class="a"></i>NORTHGATE 81.0%<br><i class="b"></i>RIVERSIDE 66.9%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 16: NORTHGATE 83.9%, RIVERSIDE 69.6%"><span class="xh"></span><span class="pt b" style="bottom: 69.6%;"></span><span class="pt a" style="bottom: 83.91%;"></span><div class="tip"><b>Sep 16</b><i class="a"></i>NORTHGATE 83.9%<br><i class="b"></i>RIVERSIDE 69.6%</div></div>
+            <div class="col" tabindex="0" aria-label="Sep 17: NORTHGATE 83.2%, RIVERSIDE 64.1%"><span class="xh"></span><span class="pt b" style="bottom: 64.08%;"></span><span class="pt a" style="bottom: 83.24%;"></span><div class="tip"><b>Sep 17</b><i class="a"></i>NORTHGATE 83.2%<br><i class="b"></i>RIVERSIDE 64.1%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 18: NORTHGATE 79.5%, RIVERSIDE 62.7%"><span class="xh"></span><span class="pt b" style="bottom: 62.67%;"></span><span class="pt a" style="bottom: 79.52%;"></span><div class="tip"><b>Sep 18</b><i class="a"></i>NORTHGATE 79.5%<br><i class="b"></i>RIVERSIDE 62.7%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 19: NORTHGATE 83.1%, RIVERSIDE 63.8%"><span class="xh"></span><span class="pt b" style="bottom: 63.78%;"></span><span class="pt a" style="bottom: 83.12%;"></span><div class="tip"><b>Sep 19</b><i class="a"></i>NORTHGATE 83.1%<br><i class="b"></i>RIVERSIDE 63.8%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 20: NORTHGATE 83.4%, RIVERSIDE 66.3%"><span class="xh"></span><span class="pt b" style="bottom: 66.26%;"></span><span class="pt a" style="bottom: 83.43%;"></span><div class="tip"><b>Sep 20</b><i class="a"></i>NORTHGATE 83.4%<br><i class="b"></i>RIVERSIDE 66.3%</div></div>
+            <div class="col flip" tabindex="0" aria-label="Sep 21: NORTHGATE 80.8%, RIVERSIDE 68.5%"><span class="xh"></span><span class="pt b" style="bottom: 68.45%;"></span><span class="pt a" style="bottom: 80.8%;"></span><div class="tip"><b>Sep 21</b><i class="a"></i>NORTHGATE 80.8%<br><i class="b"></i>RIVERSIDE 68.5%</div></div>
           </div>
         </div>
-        <div class="xl"><span>Sep 01</span><span>Sep 14</span></div>
+        <div class="xl"><span>Sep 01</span><span>Sep 21</span></div>
       </div>
 
       <div class="split-rule">
@@ -334,8 +341,8 @@ td.detail { color: var(--ink-2); min-width: 260px; }
               <tr><th>Store</th><th class="n">Trips</th><th class="n">Mean</th><th class="n">MAE</th><th class="n">p50</th><th class="n">p90</th><th class="n">Breach</th></tr>
             </thead>
             <tbody>
-              <tr><td class="store"><span class="sw a"></span>NORTHGATE</td><td class="n">2,786</td><td class="n">+10.01</td><td class="n">11.08</td><td class="n">+6.70</td><td class="n">+24.92</td><td class="n">82.6%</td></tr>
-              <tr><td class="store"><span class="sw b"></span>RIVERSIDE</td><td class="n">2,023</td><td class="n">+4.74</td><td class="n">7.20</td><td class="n">+2.97</td><td class="n">+15.88</td><td class="n">67.6%</td></tr>
+              <tr><td class="store"><span class="sw a"></span>NORTHGATE</td><td class="n">11,257</td><td class="n">+10.23</td><td class="n">11.28</td><td class="n">+7.00</td><td class="n">+25.97</td><td class="n">82.1%</td></tr>
+              <tr><td class="store"><span class="sw b"></span>RIVERSIDE</td><td class="n">8,047</td><td class="n">+4.37</td><td class="n">6.98</td><td class="n">+2.57</td><td class="n">+15.07</td><td class="n">65.4%</td></tr>
             </tbody>
           </table>
         </div>
@@ -348,24 +355,24 @@ td.detail { color: var(--ink-2); min-width: 260px; }
     <div class="panel">
       <div class="sec-head"><h2>Pipeline run</h2><span class="sub mono">Kafka → Spark → bronze/silver/gold → Postgres</span></div>
       <div class="tiles">
-        <div class="tile"><div class="v">31,305</div><div class="k">events landed</div></div>
-        <div class="tile"><div class="v">1,468</div><div class="k">collapsed in silver</div></div>
-        <div class="tile"><div class="v">5,000</div><div class="k">trips</div></div>
+        <div class="tile"><div class="v">125,268</div><div class="k">events landed</div></div>
+        <div class="tile"><div class="v">5,875</div><div class="k">collapsed in silver</div></div>
+        <div class="tile"><div class="v">20,000</div><div class="k">trips</div></div>
         <div class="tile"><div class="v">0</div><div class="k">quarantined</div></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="sec-head"><h2>Trip completeness</h2><span class="sub mono">99.4% complete</span></div>
+      <div class="sec-head"><h2>Trip completeness</h2><span class="sub mono">99.6% complete</span></div>
       <div class="comp-bar" aria-hidden="true">
-        <span class="ok" style="flex: 4972 1 0;"></span>
-        <span class="bad" style="flex: 28 1 0;"></span>
+        <span class="ok" style="flex: 19911 1 0;"></span>
+        <span class="bad" style="flex: 89 1 0;"></span>
       </div>
       <div class="tbox">
         <table>
           <tbody>
-            <tr><td>Complete</td><td class="n">4,972</td><td class="n">99.4%</td></tr>
-            <tr><td>Broken</td><td class="n">28</td><td class="n">0.6%</td></tr>
+            <tr><td>Complete</td><td class="n">19,911</td><td class="n">99.6%</td></tr>
+            <tr><td>Broken</td><td class="n">89</td><td class="n">0.4%</td></tr>
           </tbody>
         </table>
       </div>
@@ -380,14 +387,14 @@ td.detail { color: var(--ink-2); min-width: 260px; }
         <table class="gates">
           <thead><tr><th>Stage</th><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
           <tbody>
-            <tr><td class="stage">bronze_to_silver</td><td class="check">freshness</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">newest event is 1 day, 1:47:57.228180 old (limit 3 days, 0:00:00)</td></tr>
-            <tr><td class="stage">bronze_to_silver</td><td class="check">reconciliation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">31305 in = 31305 accepted + 0 quarantined</td></tr>
+            <tr><td class="stage">bronze_to_silver</td><td class="check">freshness</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">newest event is 1 day, 1:21:04.799124 old (limit 3 days, 0:00:00)</td></tr>
+            <tr><td class="stage">bronze_to_silver</td><td class="check">reconciliation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">125268 in = 125268 accepted + 0 quarantined</td></tr>
             <tr><td class="stage">silver_to_gold</td><td class="check">fk:driver_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">all driver_id values resolve in dim_driver</td></tr>
             <tr><td class="stage">silver_to_gold</td><td class="check">fk:store_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">all store_id values resolve in dim_store</td></tr>
-            <tr><td class="stage">silver_to_gold</td><td class="check">measurable_share</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">4809/5000 trips measurable (96.2%)</td></tr>
-            <tr><td class="stage">silver_to_gold</td><td class="check">not_null:trip_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">trip_id has no nulls across 5000 rows</td></tr>
-            <tr><td class="stage">silver_to_gold</td><td class="check">row_conservation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">fct_trip_x_dim_driver preserved all 5000 left rows</td></tr>
-            <tr><td class="stage">silver_to_gold</td><td class="check">unique_key</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">trip_id unique across 5000 rows</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">measurable_share</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">19304/20000 trips measurable (96.5%)</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">not_null:trip_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">trip_id has no nulls across 20000 rows</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">row_conservation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">fct_trip_x_dim_driver preserved all 20000 left rows</td></tr>
+            <tr><td class="stage">silver_to_gold</td><td class="check">unique_key</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">trip_id unique across 20000 rows</td></tr>
             <tr><td class="stage">silver_to_gold</td><td class="check">volume_band</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">only 0 baseline day(s) - band not evaluated</td></tr>
           </tbody>
         </table>

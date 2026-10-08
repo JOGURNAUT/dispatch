@@ -274,7 +274,7 @@ store-blind — one global speed, one flat buffer — and the stores are not.
 
 | store | trips | mean signed error | MAE | p50 | p90 | breach rate |
 |---|---|---|---|---|---|---|
-| NORTHGATE | 11,245 | **+10.24 min** | 11.26 | 7.10 | 25.27 | 82.8% |
+| NORTHGATE | 11,245 | **+10.23 min** | 11.26 | 7.10 | 25.27 | 82.8% |
 | RIVERSIDE | 8,064 | **+4.18 min** | 6.84 | 2.53 | 14.85 | 65.4% |
 | *pooled* | 19,309 | *+7.71* | *9.41* | | | |
 

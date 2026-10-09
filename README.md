@@ -24,10 +24,10 @@ generic checklist.
                   Streaming        └──────── Airflow ─────┘
 ```
 
-**[Interactive architecture diagram →](docs/dispatch-architecture.html)** — every box carries its
+**[Interactive architecture diagram →](docs/dispatch-architecture.html)**: every box carries its
 source references, pinned to the commit it was generated from.
 
-**[Results page →](docs/results.html)** — what the pipeline found, generated from
+**[Results page →](docs/results.html)**: what the pipeline found, generated from
 the warehouse at build time rather than typed in.
 
 ## Run it
@@ -74,7 +74,7 @@ is who executes them and over how much data.
 
 This is not portability for its own sake. A dedupe rule written in Spark SQL can
 only be tested by starting Spark, so in practice it is tested by running the
-pipeline and looking at the output — which is how a rule that is subtly wrong
+pipeline and looking at the output, which is how a rule that is subtly wrong
 survives for months. Keeping the rules separable means `make test` proves them in
 six seconds, and CI runs them on every push with no containers at all.
 
@@ -112,7 +112,7 @@ Kafka is at-least-once. A consumer that dies between writing a batch and
 committing its offset replays that batch; Airflow retries a failed task; a
 backfill replays on purpose. None of these are errors, so none may move a number.
 
-The naive defence — `DISTINCT` on the row — fails on the case that actually
+The naive defence, `DISTINCT` on the row, fails on the case that actually
 happens: the same logical event re-published with a corrected field. Two rows
 differing in `distance_m` are not duplicates, both survive, and the trip now has
 two `delivered` events. Which one a later aggregate picks is arbitrary.
@@ -140,7 +140,7 @@ So a trip carries a `completeness` label instead of a silent inclusion:
 |------------|----------------------------------------------------|----------------|
 | `complete` | terminal event present                             | yes            |
 | `open`     | still in flight, last event inside the lag window  | no             |
-| `stalled`  | silent past the lag window — a real problem         | no, and visible|
+| `stalled`  | silent past the lag window, a real problem         | no, and visible|
 | `broken`   | lifecycle violated                                 | no             |
 
 Only `complete` rows carry a TAT. Substituting `now()` for a missing
@@ -154,7 +154,7 @@ drops rows and raises nothing. This exact defect removed 1,647 of ~32,000 orders
 from a real analysis and biased every figure computed before it was found.
 
 A join that must preserve its left side is asserted to preserve it, in both
-directions — fewer rows means it went inner, more means the right side is not
+directions: fewer rows means it went inner, more means the right side is not
 unique on the key and every measure downstream is double-counted.
 
 ### A metric whose value depends on when the job ran
@@ -166,7 +166,7 @@ nowhere in the data.
 
 This rule caught its own violation during development: the freshness gate was
 reading the wall clock, which made every backfill fail for the only reason a
-backfill exists — that its data is older than today.
+backfill exists: that its data is older than today.
 
 ### A producer adds a field nobody told you about
 
@@ -182,7 +182,7 @@ defaults and a v1.1.0 row reads under v1.0.0 with its new fields parked. Both
 versions sit in one topic, because a producer fleet does not upgrade atomically.
 
 `check_compatibility` is meant to run in the **producer's** CI, before the change
-ships — adding an optional field is `FULL`, making an existing field required or
+ships: adding an optional field is `FULL`, making an existing field required or
 changing its type is `BREAKING` and refused. Finding out at ingestion time means
 finding out from a partition that has already landed.
 
@@ -204,8 +204,8 @@ matters:
 - **Listing is a query.** Objects are a flat namespace; a "directory" is a
   prefix convention and listing one is a paged network call.
 
-So appending became *one object per batch per partition* —
-`dt=2026-09-01/batch-<run-id>.jsonl` — and **both** backends do it that way,
+So appending became *one object per batch per partition*:
+`dt=2026-09-01/batch-<run-id>.jsonl`, and **both** backends do it that way,
 including the local one. If local appended to a single file and GCS wrote many
 objects, the tests would exercise the easy backend and the first real bucket run
 would be the first check of the hard one.
@@ -223,7 +223,7 @@ DISPATCH_BRONZE=gs://my-lake/bronze DISPATCH_SILVER=gs://my-lake/silver run demo
 Trip events are things that happened and are never amended. A driver row in the
 application's Postgres is a thing that *is*, and it changes. So facts come from
 Kafka and dimensions come from CDC of the operational database, and the two load
-differently — a fact partition is replaced, a dimension is merged.
+differently: a fact partition is replaced, a dimension is merged.
 
 Four things in a Debezium stream break a naive consumer, each a quiet wrong
 answer rather than a crash:
@@ -261,7 +261,7 @@ including epoch seconds and milliseconds, are normalised at the boundary.
 
 ## The gates
 
-Nine, all persisted to `run_audit` whether they pass or fail — a log that records
+Nine, all persisted to `run_audit` whether they pass or fail: a log that records
 only failures cannot distinguish a check that passed from one that never ran.
 
 | gate | catches |
@@ -278,8 +278,8 @@ only failures cannot distinguish a check that passed from one that never ran.
 They run **before** the load, not after. A validate task placed downstream of a
 load means the bad rows are already being read by the time anything objects.
 
-A failure alerts with the verdict text — `fct_trip dropped 1,647 of 32,380 left
-rows - the join is behaving as INNER` is the alert, not "the DAG failed" — and
+A failure alerts with the verdict text: `fct_trip dropped 1,647 of 32,380 left
+rows - the join is behaving as INNER` is the alert, not "the DAG failed", and
 states that nothing was loaded, because the first question on being paged is
 whether the warehouse is wrong right now. Nothing is sent on a green run: a
 channel carrying every success gets muted, and then the failures are muted too.
@@ -298,7 +298,7 @@ Two choices that keep them useful rather than noisy:
 ## What the marts find
 
 `mart_promise_error` splits the promise error by store. The promise formula is
-store-blind — one global speed, one flat buffer — and the stores are not.
+store-blind: one global speed, one flat buffer, and the stores are not.
 
 | store | trips | mean signed error | MAE | p50 | p90 | breach rate |
 |---|---|---|---|---|---|---|
@@ -308,7 +308,7 @@ store-blind — one global speed, one flat buffer — and the stores are not.
 
 The pooled figure is the point. One number for both stores reports a formula
 that is "about 8 minutes optimistic" and hides that it is more than twice as
-wrong at one store as the other — two problems whose fixes point in different
+wrong at one store as the other, two problems whose fixes point in different
 directions, partly cancelling into the appearance of a formula that is roughly
 right.
 
@@ -322,7 +322,7 @@ wrong in the tail. Those need different fixes.
 ## Layout
 
 ```
-dispatch/            pure-Python transformation logic — no engine imports
+dispatch/            pure-Python transformation logic, no engine imports
   contracts.py         schema boundary, timestamp normalisation
   schema_registry.py   versioned schemas, compatibility checking, extras
   cdc.py               Debezium envelopes, tombstones, LSN ordering
@@ -358,7 +358,7 @@ python -m generator.produce --trips 20000 --dup-rate 0.1 --broken-rate 0.05
 - **The per-store finding is a demonstration, not a validated model.** The speed
   constants that generate the data are the same ones the marts recover, so the
   mart is confirming an arrangement it was handed. On real data this needs a
-  holdout window. What it does show is that the pooled average hides the split —
+  holdout window. What it does show is that the pooled average hides the split:
   that part does not depend on knowing the true constants.
 - **`volume_band` cannot fire on a first load**, by design. Three days of history
   are needed before the band means anything.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dispatch — Last-Mile Delivery Pipeline</title>
+<title>Dispatch: Last-Mile Delivery Pipeline</title>
 <meta name="description" content="Kafka to Spark to a medallion lake to a star schema, orchestrated by Airflow, with eight blocking data-quality gates.">
 <link rel="stylesheet" href="site.css">
 <style>
@@ -78,7 +78,7 @@
     <p style="margin:0 0 10px; font-size:14.5px; line-height:1.5">
       The delivery promise uses <b>one global speed for every store</b>. The
       stores do not move at one speed, so the error it leaves behind is more
-      than twice as large at one of them &mdash; and a single pooled average
+      than twice as large at one of them, and a single pooled average
       reports that as one problem.
     </p>
     <p style="margin:0"><a href="results.html">See the numbers &rarr;</a></p>
@@ -99,7 +99,7 @@
       <h2>Handoff</h2>
       <p>Dispatch measures how wrong a flat delivery promise is.
          <b>Arrival</b> predicts what it should have been. <code>fct_trip</code>
-         is the entire contract between them &mdash; diagrammed.</p>
+         is the entire contract between them, diagrammed.</p>
     </a>
   </div>
 
@@ -125,8 +125,8 @@
                 an out-of-order update cannot revert a row.</span></li>
     </ul>
     <p class="caveat"><b>The events are synthetic.</b> They come from a seeded
-       generator with defects injected on purpose &mdash; redeliveries,
-       corrections, broken streams &mdash; because a clean dataset cannot
+       generator with defects injected on purpose (redeliveries,
+       corrections, broken streams) because a clean dataset cannot
        exercise a quality gate. What is not circular is the shape of the
        mistake the pipeline catches.</p>
   </section>

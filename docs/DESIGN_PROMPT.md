@@ -132,6 +132,10 @@ in the same style if your design needs values the current one does not:
 {line_a_points} {line_b_points} {day_columns} {axis_ticks}
 ```
 
+A further seventeen placeholders exist only to position the current number line
+— `{a_pos}`, `{gap_left}`, `{gap_width}` and similar. They belong to that chart
+and die with it, so ignore them unless you keep something shaped the same way.
+
 `{store_rows}`, `{gate_rows}`, `{day_columns}` and the `_points` values are
 pre-rendered HTML or SVG fragments. If you change the shape of a table or a
 chart, say plainly what markup you now expect those to contain and I will change

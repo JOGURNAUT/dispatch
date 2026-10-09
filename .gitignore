@@ -13,3 +13,6 @@ dbt/dbt_packages/
 .pytest_cache/
 .ruff_cache/
 .archify/
+docs/*.browser-check.json
+docs/*.delivery.json
+docs/*.finalize*.json

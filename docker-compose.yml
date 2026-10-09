@@ -122,16 +122,37 @@ services:
     command: >
       python -m generator.produce --trips 20000 --days 21
       --bootstrap kafka:9092 --topic trip_events
-    volumes: ["./data:/opt/dispatch/data"]
+    volumes:
+      # The code, not just the data. The image installs dependencies and sets
+      # PYTHONPATH but never COPYs the source -- every other service mounts it,
+      # and this one did not, so `python -m generator.produce` could not find
+      # the module it was told to run.
+      - ./generator:/opt/dispatch/generator
+      - ./dispatch:/opt/dispatch/dispatch
+      - ./data:/opt/dispatch/data
     profiles: ["manual"]
 
   spark:
-    image: apache/spark:3.5.0
+    # The -python3-ubuntu variant, not apache/spark:3.5.x. Those ship Python
+    # 3.8, and the shared dispatch/ package uses the dict merge operator and
+    # runtime type unions, both of which are newer than that. Neither shows up
+    # until a real Spark job runs: the driver is fine, the executor is where the
+    # core actually gets imported.
+    #
+    # Matching the runtime is also the right instinct on its own -- PySpark
+    # wants the driver and executor on the same Python, and this stack develops
+    # and tests on 3.11.
+    image: spark:3.5.3-scala2.12-java17-python3-ubuntu
     depends_on:
       kafka: {condition: service_healthy}
     environment:
       SPARK_MODE: master
       PYTHONPATH: /opt/dispatch
+      # --packages resolves through Ivy, which writes its cache under $HOME.
+      # The image runs as a user whose home is not writable, so resolution died
+      # before a single JAR was fetched -- with a FileNotFoundException about
+      # its own cache file, which reads like a missing dependency and is not.
+      HOME: /tmp
     ports: ["8081:8080"]
     volumes:
       - ./streaming:/opt/dispatch/streaming
@@ -139,6 +160,7 @@ services:
       - ./data:/opt/dispatch/data
     command: >
       /opt/spark/bin/spark-submit --master local[2]
+      --conf spark.jars.ivy=/tmp/.ivy2
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
       /opt/dispatch/streaming/ingest.py
       --bootstrap kafka:9092 --bronze /opt/dispatch/data/bronze

@@ -30,7 +30,7 @@ import os
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 WEBHOOK_ENV = "DISPATCH_ALERT_WEBHOOK"
 TIMEOUT_SECONDS = 10
@@ -72,7 +72,7 @@ class Alert:
             "batch_id": self.batch_id,
             "failure_count": len(self.failures),
             "failures": self.failures,
-            "sent_at": datetime.now(UTC).replace(tzinfo=None).isoformat(),
+            "sent_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         }
 
 

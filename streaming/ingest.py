@@ -89,6 +89,39 @@ def event_schema():
     ])
 
 
+# The OUTPUT shape, declared for the same reason the input one is.
+#
+# createDataFrame was left to infer this, and it cannot: `_reason` and
+# `_payload` are null on every valid row, so there is no value anywhere in the
+# batch to infer a type from, and Spark fails the whole micro-batch with
+# CANNOT_DETERMINE_TYPE. Inference also makes the schema depend on which rows
+# happen to arrive first, which is the thing the input schema exists to prevent.
+NORMALISED_COLUMNS = [
+    ("event_id", "string"), ("trip_id", "string"), ("order_id", "string"),
+    ("driver_id", "string"), ("store_id", "string"), ("event_type", "string"),
+    ("event_ts", "timestamp"), ("ingested_at", "timestamp"),
+    ("lat", "double"), ("lon", "double"),
+    ("distance_m", "int"), ("promised_minutes", "int"),
+    ("producer_version", "string"), ("schema_version", "string"),
+    ("extra", "string"), ("issues", "string"),
+    ("_valid", "boolean"), ("_reason", "string"), ("_payload", "string"),
+    ("dt", "string"),
+]
+
+
+def normalised_schema():
+    from pyspark.sql.types import (
+        BooleanType, DoubleType, IntegerType, StringType, StructField,
+        StructType, TimestampType,
+    )
+
+    kinds = {"string": StringType(), "timestamp": TimestampType(),
+             "double": DoubleType(), "int": IntegerType(),
+             "boolean": BooleanType()}
+    return StructType([StructField(name, kinds[kind], True)
+                       for name, kind in NORMALISED_COLUMNS])
+
+
 def normalise_partition(rows):
     """Apply the shared contract across one Spark partition.
 
@@ -98,24 +131,33 @@ def normalise_partition(rows):
     """
     from dispatch.contracts import ContractViolation, normalise_event
 
+    def blank() -> dict:
+        """Every output column, present and null.
+
+        Both branches below must yield the SAME KEYS. They did not: the
+        violation path emitted six fields and the valid path about twenty, so
+        the rows in one partition had different shapes depending on how clean
+        the data happened to be.
+        """
+        return {name: None for name, _ in NORMALISED_COLUMNS}
+
     for row in rows:
         raw = row.asDict()
+        out = blank()
         try:
             event = normalise_event(raw, ingested_at=row["_ingested_at"])
         except ContractViolation as exc:
             # Not dropped. Carried forward with its reason so the silver stage
             # can quarantine it and someone can read what the producer sent.
-            yield {"_valid": False, "_reason": str(exc),
-                   "_payload": json.dumps(raw, default=str), "trip_id": raw.get("trip_id"),
-                   "event_ts": None, "dt": "unknown"}
+            out.update({"_valid": False, "_reason": str(exc),
+                        "_payload": json.dumps(raw, default=str),
+                        "trip_id": raw.get("trip_id"), "dt": "unknown"})
+            yield out
             continue
-        out = event.as_row()
-        out["event_ts"] = out["event_ts"]
-        out["ingested_at"] = out["ingested_at"]
+
+        out.update(event.as_row())
         out["issues"] = ",".join(event.issues) or None
         out["_valid"] = True
-        out["_reason"] = None
-        out["_payload"] = None
         # Partition by the day the event describes, not the day it arrived.
         # Arrival-date partitioning splits one trip across two days.
         out["dt"] = event.event_ts.strftime("%Y-%m-%d")
@@ -179,7 +221,7 @@ def main(argv=None) -> int:
         rows = batch_df.rdd.mapPartitions(normalise_partition)
         if rows.isEmpty():
             return
-        out = spark.createDataFrame(rows)
+        out = spark.createDataFrame(rows, schema=normalised_schema())
         write_batch(out, batch_id, args.bronze)
         invalid = out.filter(~F.col("_valid")).count()
         print(f"batch {batch_id}: {out.count()} rows, {invalid} contract violations")

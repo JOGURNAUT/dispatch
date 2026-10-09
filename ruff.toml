@@ -9,6 +9,12 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
+# datetime.UTC is Python 3.11. Everything under dispatch/ is the shared core and
+# also runs on Spark executors, whose image ships Python 3.8 -- so the autofix
+# for this rule produced an ImportError that only appeared once a real Spark job
+# ran. The core targets the lowest runtime it lands on, not the one it is
+# developed on.
+"dispatch/*" = ["UP017"]
 # Airflow's @dag decorator is invoked at import time by design; the call at the
 # bottom of the module is how the DAG is registered, not a stray expression.
 "dags/*" = ["B018"]

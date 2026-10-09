@@ -24,7 +24,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from . import schema_registry
@@ -86,7 +86,7 @@ _EPOCH_MS_RE = re.compile(r"^\d{13}$")
 
 def _from_epoch(seconds: float) -> datetime:
     """Epoch to naive UTC, matching how every other branch returns."""
-    return datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
+    return datetime.fromtimestamp(seconds, timezone.utc).replace(tzinfo=None)
 
 
 class ContractViolation(ValueError):
@@ -108,7 +108,7 @@ def parse_timestamp(value: Any) -> datetime | None:
     if value is None or value == "":
         return None
     if isinstance(value, datetime):
-        return value.astimezone(UTC).replace(tzinfo=None) if value.tzinfo else value
+        return value.astimezone(timezone.utc).replace(tzinfo=None) if value.tzinfo else value
 
     text = str(value).strip()
     if not text:
@@ -129,7 +129,7 @@ def parse_timestamp(value: Any) -> datetime | None:
     iso = text.replace("Z", "+00:00") if text.endswith("Z") else text
     try:
         parsed = datetime.fromisoformat(iso)
-        return parsed.astimezone(UTC).replace(tzinfo=None) if parsed.tzinfo else parsed
+        return parsed.astimezone(timezone.utc).replace(tzinfo=None) if parsed.tzinfo else parsed
     except ValueError:
         pass
 
@@ -286,7 +286,7 @@ def normalise_event(raw: dict[str, Any], ingested_at: datetime | None = None) ->
         store_id=store_id,
         event_type=event_type,
         event_ts=event_ts,
-        ingested_at=ingested_at or datetime.now(UTC).replace(tzinfo=None),
+        ingested_at=ingested_at or datetime.now(timezone.utc).replace(tzinfo=None),
         lat=lat,
         lon=lon,
         distance_m=distance_m,

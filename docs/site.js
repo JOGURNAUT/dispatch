@@ -35,15 +35,40 @@
       'Switch to ' + (light ? 'dark' : 'light') + ' theme');
   }
 
+  // A wrapper page frames a diagram in an iframe rather than owning its
+  // markup (see the wrapper's own comment for why). The diagram keeps its own
+  // theme under a different localStorage key, 'archify-theme', and reads it
+  // only once, on its own load -- so without this, the site's Light/Dark
+  // button flips the chrome around the diagram and leaves the diagram dark,
+  // which looks like light mode half-worked rather than like two independent
+  // toggles. Same origin, so both the stored key and a direct attribute write
+  // reach an already-loaded iframe immediately.
+  function syncDiagramTheme(value) {
+    try { localStorage.setItem('archify-theme', value); } catch (e) { /* private mode */ }
+    var frame = document.getElementById('diagramFrame');
+    var doc = frame && frame.contentDocument;
+    if (doc && doc.documentElement) {
+      doc.documentElement.setAttribute('data-theme', value);
+    }
+  }
+
   function wireTheme() {
     var btn = document.querySelector('.themetoggle');
     if (!btn) return;
     label(btn);
+
+    // On first load, a framed diagram has already read whatever
+    // 'archify-theme' said before this page decided its own theme (the
+    // default, or a stored 'theme' value); bring the diagram into line with
+    // where this page actually started.
+    syncDiagramTheme(root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
     btn.addEventListener('click', function () {
       var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       root.setAttribute('data-theme', next);
       remember(next);
       label(btn);
+      syncDiagramTheme(next);
     });
   }
 

@@ -14,8 +14,11 @@
   }
   .figures b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
 
-  .cards { display: grid; gap: var(--gap); grid-template-columns: 1fr 1fr; }
-  @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+  .cards { display: grid; gap: var(--gap); grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 920px) { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+  .card.out-link h2::after { content: " \2197"; }
 
   .card {
     display: block; text-decoration: none; color: inherit;
@@ -47,6 +50,7 @@
   <a href="dispatch-architecture.html">Architecture</a>
   <a href="results.html">Results</a>
   <span class="spacer"></span>
+  <a href="https://jogurnaut.github.io/arrival/handoff.html" style="margin-right: 4px">Handoff</a>
   <a class="out" href="https://github.com/JOGURNAUT/dispatch">Source</a>
   <button class="themetoggle" type="button">Light</button>
 </nav>
@@ -90,6 +94,12 @@
       <h2>Results</h2>
       <p>What the pipeline found, generated from the warehouse at build time.
          Per-store promise error, daily breach rates, and every gate verdict.</p>
+    </a>
+    <a class="card out-link" href="https://jogurnaut.github.io/arrival/handoff.html">
+      <h2>Handoff</h2>
+      <p>Dispatch measures how wrong a flat delivery promise is.
+         <b>Arrival</b> predicts what it should have been. <code>fct_trip</code>
+         is the entire contract between them &mdash; diagrammed.</p>
     </a>
   </div>
 

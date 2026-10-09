@@ -305,6 +305,41 @@ th[data-sort][aria-sort="descending"]::after { content: " \2193"; opacity: 1; }
 .badge.fail { color: var(--bad); background: var(--bad-dim); border-color: var(--bad); }
 .badge.warn { color: var(--warn);background: var(--warn-dim);border-color: var(--warn); }
 
+/* The generator emits an inline <svg viewBox="0 0 16 16"> with no width or
+ * height. An SVG without intrinsic dimensions fills whatever box it is given,
+ * so without these two lines each tick renders a thousand pixels tall and the
+ * page looks like a bug report. Sizing lives here rather than in the markup
+ * because the markup comes from Python. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge svg {
+  width: 11px;
+  height: 11px;
+  flex: none;
+}
+
+/* Row classes the generator emits. */
+td.stage, td.check { font-family: var(--mono); font-size: 11.5px; }
+td.check { color: var(--ink); }
+td.detail { color: var(--ink-3); font-size: 11.5px; }
+
+td.store { display: flex; align-items: center; gap: 8px; }
+
+.sw {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex: none;
+  display: inline-block;
+}
+
+.sw.a { background: var(--series-a); }
+.sw.b { background: var(--series-b); }
+
 /* --------------------------------------------------------------------- bars */
 
 .bars { margin-top: 4px; }

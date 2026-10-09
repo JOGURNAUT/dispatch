@@ -33,10 +33,19 @@ if /i "%~1"=="clean"  goto :clean
 goto :unknown
 
 :published
-REM The run the live page and the resume quote: 20,000 trips, 125,352 events.
+REM The run the live page and the resume quote: 20,000 trips, 125,264 events.
 REM `demo` is the fast one for a walkthrough; this is the one whose numbers
 REM match what is written down. Reproducing a published figure on demand is a
 REM different claim from showing a pipeline work, and both are worth having.
+REM
+REM It cleans first, and that is not tidiness. Bronze is append-only, as a
+REM lake should be, so a second run over the same source leaves it holding
+REM both ingests -- and a target whose whole purpose is reproducing a
+REM published figure cannot double its own input every time it is used.
+if exist data\bronze       rmdir /s /q data\bronze
+if exist data\silver       rmdir /s /q data\silver
+if exist data\_checkpoints rmdir /s /q data\_checkpoints
+if exist data\warehouse.db del /q data\warehouse.db
 python -m generator.produce --trips 20000 --days 14 --out data/raw/events.jsonl || exit /b 1
 python -m transforms.run_pipeline all --source data/raw/events.jsonl --as-of 2026-09-16T00:00:00 || exit /b 1
 python -m transforms.load_dimension --demo || exit /b 1

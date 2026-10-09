@@ -149,7 +149,7 @@
   <p class="eyebrow">Dispatch · delivery-promise error</p>
   <h1>One global speed leaves NORTHGATE 2.2&times; as late as RIVERSIDE,
       and the pooled average hides it.</h1>
-  <p class="stamp">generated 2026-10-09 15:27 UTC from the warehouse · every figure
+  <p class="stamp">generated 2026-10-09 15:37 UTC from the warehouse · every figure
      queried at build time</p>
 
   <section>
@@ -279,8 +279,8 @@
       <h2>Pipeline run</h2>
       <p class="lede">What the DAG moved on the run that produced this page.</p>
       <div class="kpis">
-        <div class="kpi"><div class="kv">0</div><div class="kl">events landed</div></div>
-        <div class="kpi"><div class="kv">0</div><div class="kl">collapsed in silver</div></div>
+        <div class="kpi"><div class="kv">125,264</div><div class="kl">events landed</div></div>
+        <div class="kpi"><div class="kv">5,854</div><div class="kl">collapsed in silver</div></div>
         <div class="kpi"><div class="kv">20,000</div><div class="kl">trips</div></div>
         <div class="kpi"><div class="kv">0</div><div class="kl">quarantined</div></div>
       </div>
@@ -322,7 +322,7 @@
               <th data-sort>Verdict</th><th>Detail</th></tr>
         </thead>
         <tbody><tr><td class="stage">bronze_to_silver</td><td class="check">freshness</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">newest event is 1 day, 0:33:18.738184 old (limit 3 days, 0:00:00)</td></tr>
-            <tr><td class="stage">bronze_to_silver</td><td class="check">reconciliation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">250528 in = 250528 accepted + 0 quarantined</td></tr>
+            <tr><td class="stage">bronze_to_silver</td><td class="check">reconciliation</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">125264 in = 125264 accepted + 0 quarantined</td></tr>
             <tr><td class="stage">silver_to_gold</td><td class="check">fk:driver_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">all driver_id values resolve in dim_driver</td></tr>
             <tr><td class="stage">silver_to_gold</td><td class="check">fk:store_id</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">all store_id values resolve in dim_store</td></tr>
             <tr><td class="stage">silver_to_gold</td><td class="check">measurable_share</td><td><span class="badge pass"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS</span></td><td class="detail">19312/20000 trips measurable (96.6%)</td></tr>

@@ -88,8 +88,17 @@ def fetch() -> dict:
         raise RuntimeError(
             f"this page compares two stores and the warehouse has {len(stores)}")
 
-    bronze = sorted((ROOT / "data" / "bronze").glob("dt=*.jsonl"))
-    silver = sorted((ROOT / "data" / "silver").glob("dt=*.jsonl"))
+    # dt=<date>/ is a DIRECTORY holding one file per batch, not a file. The
+    # glob was written for a flat layout that no longer exists, so both counts
+    # came back as a confident zero and the page reported "0 events landed" for
+    # as long as anyone had been looking at it. A count that cannot find its
+    # input should not be able to return a number.
+    bronze = sorted((ROOT / "data" / "bronze").glob("dt=*/*.jsonl"))
+    silver = sorted((ROOT / "data" / "silver").glob("dt=*/*.jsonl"))
+    if not bronze or not silver:
+        raise RuntimeError(
+            f"no lake files under data/bronze and data/silver "
+            f"(found {len(bronze)} and {len(silver)}) -- run the pipeline first")
     count = lambda ps: sum(sum(1 for _ in p.open(encoding="utf-8")) for p in ps)  # noqa: E731
     bronze_rows, silver_rows = count(bronze), count(silver)
 

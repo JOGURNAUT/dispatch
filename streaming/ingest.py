@@ -111,8 +111,13 @@ NORMALISED_COLUMNS = [
 
 def normalised_schema():
     from pyspark.sql.types import (
-        BooleanType, DoubleType, IntegerType, StringType, StructField,
-        StructType, TimestampType,
+        BooleanType,
+        DoubleType,
+        IntegerType,
+        StringType,
+        StructField,
+        StructType,
+        TimestampType,
     )
 
     kinds = {"string": StringType(), "timestamp": TimestampType(),

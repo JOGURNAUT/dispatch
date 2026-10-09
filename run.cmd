@@ -24,12 +24,25 @@ REM and then reported failure.
 if "%~1"==""        goto :help
 if /i "%~1"=="help" goto :help
 if /i "%~1"=="demo"   goto :demo
+if /i "%~1"=="published" goto :published
 if /i "%~1"=="prove"  goto :prove
 if /i "%~1"=="test"   goto :test
 if /i "%~1"=="marts"  goto :marts
 if /i "%~1"=="report" goto :report
 if /i "%~1"=="clean"  goto :clean
 goto :unknown
+
+:published
+REM The run the live page and the resume quote: 20,000 trips, 125,352 events.
+REM `demo` is the fast one for a walkthrough; this is the one whose numbers
+REM match what is written down. Reproducing a published figure on demand is a
+REM different claim from showing a pipeline work, and both are worth having.
+python -m generator.produce --trips 20000 --days 14 --out data/raw/events.jsonl || exit /b 1
+python -m transforms.run_pipeline all --source data/raw/events.jsonl --as-of 2026-09-16T00:00:00 || exit /b 1
+python -m transforms.load_dimension --demo || exit /b 1
+python scripts/build_marts.py || exit /b 1
+python scripts/build_report.py || exit /b 1
+exit /b 0
 
 :demo
 REM Everything a walkthrough needs, in one command. Chained rather than left as
@@ -82,7 +95,8 @@ exit /b 0
 echo.
 echo   In PowerShell these need the .\ prefix:  .\run demo
 echo.
-echo   demo     pipeline end to end, then marts and the results page   (~5s)
+echo   demo      pipeline end to end, marts, results page    (~5s, 5k trips)
+echo   published 20k trips, the numbers on the live page     (~40s)
 echo   prove    show the logic runs with no engine installed           (~13s)
 echo   test     the test suite                                         (~8s)
 echo   marts    build the dbt models and print the finding

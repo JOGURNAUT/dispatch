@@ -75,8 +75,18 @@ def build(verbose: bool = True) -> dict:
     try:
         for name, materialisation, relative in MODELS:
             sql = compile_sql(DBT / relative)
-            conn.executescript(f"DROP VIEW IF EXISTS {name}")
-            conn.executescript(f"DROP TABLE IF EXISTS {name}")
+
+            # IF EXISTS does not protect against a type mismatch: SQLite raises
+            # "use DROP TABLE to delete table" when asked to DROP VIEW a name
+            # that exists as a table. A model that changed materialisation
+            # between runs therefore failed on the second run while the first
+            # looked fine. The catalog decides the keyword, not the model file.
+            existing = conn.execute(
+                "SELECT type FROM sqlite_master WHERE name = ?", (name,)
+            ).fetchone()
+            if existing:
+                conn.executescript(f"DROP {existing[0].upper()} {name}")
+
             keyword = "VIEW" if materialisation == "view" else "TABLE"
             conn.executescript(f"CREATE {keyword} {name} AS {sql}")
             built.append(name)
